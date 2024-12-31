@@ -1,0 +1,23 @@
+project:
+  type: website
+
+website:
+  title: "ASJ analytics and software"
+  site-url: https://theasjblog.github.io/analytics/
+  description: "Analytics, software, and everything in between"
+  cookie-consent: false
+  google-analytics: "TODO"
+  navbar:
+    left:
+      - href: index.qmd
+        text: "Home"
+      - href: about.qmd
+        text: "About"
+    right:
+      - icon: github
+        href: https://github.com/theasjblog
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
