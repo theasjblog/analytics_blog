@@ -1,0 +1,4 @@
+default:
+  var_1: !expr Sys.sleep(3)
+  var_2: "hi"
+  

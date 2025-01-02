@@ -1,0 +1,6 @@
+default:
+  runParallel: FALSE
+  nRuns: 10
+production:
+  runParallel: TRUE
+  nRuns: 100
