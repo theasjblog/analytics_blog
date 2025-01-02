@@ -1,0 +1,179 @@
+---
+title: "Everything you want to know about unit testing in R - Part 1"
+description: "Your survival guide to unit testing, test fixtures, mocking, and coverage in R."
+date: "2022-08-26"
+categories: [r, tetthat, testing]
+---
+![](img/cover.png)
+
+
+
+**In this first part**
+
+* Introduction to testing
+* testthat
+* Helper functions
+
+# Introduction
+
+Testing is an essential part of coding. It should be part of your daily routine, regardless of your job title. You write code, you test code. Simple as that. Unless you do test driven development. Then for you it is “you test code, you write code”. Still, you test.
+
+## Types of testing
+
+There are many different types of testing. To add to the confusion, different people call the same type of testing in different ways. Here is a quick overview of the convention I use:
+
+* **Unit testing**. Is each of your functions working as expected?
+* **Regression testing**. After you have modified your code base (i.e. a bug fix), is your code still returning the same expected results?
+* **Integration testing**. Is your code talking with other components, i.e. log servers or databases?
+* **Load testing**. Is your code working under load, i.e. when many users are running it?
+* **Performance testing**. Is your code fast enough?
+* **Penetration testing**. How secure is your code against malicious attempts to run it?
+
+Today I will focus on unit testing, which is the most common type of testing you will be doing as a developer. Also, I will look at how to test “traditional” R code: scripts and packages. Other applications such as API and Shiny use special tools that I will cover in the future.
+
+## Why testing?
+
+::: {.callout-note appearance="simple"}
+Code that has not been tested is code that does not work
+:::
+
+I get asked “why testing” more often then you might think. After all, while you develop your code, you do some informal testing to make sure it runs. If you develop mathematical models, you spend hours validating them. So, why waste time writing formal unit tests?
+
+Here are three of the main reasons:
+
+1. Tests are a form of documentation. Tests are explicit representation of the code’s expected behaviour.
+2. Test the sad path. When you are in developer mode, you check that your code works as expected when it receives the inputs it expects. This is called testing the happy path. But when you test, you need to change your mindset. Now you are asking yourself: “how can I break this code”. The easiest way is to break assumptions. What if you pass a negative value? What if you pass a string rather than a vector? What if a global variable is missing? This is the sad path. You will need to test both the happy path and the sad path.
+3. Code that has not been tested, is code that does not work.
+
+Of course, tests are not a cure-it-all remedy. Your code will still fail despite your tests. Tests cannot prove that our code works. They can only prove that it does not fail.
+
+
+# Testing prerequisites
+
+Start by setting up your code base. This is not mandatory, but I strongly recommend you do it. I already covered the R set up in [this article](/posts/2022-07-13_setup_r_for_success/index.html). Briefly, here’s your checklist.
+
+* Create an RStudio project.
+* Put R code in a folder called R.
+* Put tests Tests in a folder called tests/testthat.
+* Create a `tests/testthat.R` file. You can create this file and the test folders by running use `this::use_testthat()`.
+* `DESCRIPTION` file (optional).
+* `NAMESPACE` file (optional)
+
+```bash
+.
+├── demoTests.Rproj
+├── DESCRIPTION
+├── NAMESPACE
+├── R
+│   └── myNewFunction.R
+└── tests
+   ├── testthat.R
+   └── testthat
+       └──test-myNewFunctions.R
+```
+
+Note that, for clarity, I omitted some extra stuff you should have in your project: `.gitignore`, `renv.lock`, `vignette`, `README`.
+
+# Testing in R: testthat
+
+`testthat` is the package to use to run unit tests in R. Let’s start by looking at the basic functionalities.
+
+Of course, you need to have a function to test.
+
+```{r, eval=FALSE}
+# This function goes in a file inside the R folder.
+
+#' sumNumbers
+#' @description Return the sum of two numbers or vectors
+#' @param a Numeric
+#' @param b Numeric
+#' @return A numeric
+sumNumbers <- function(a, b){
+  return(a+b)
+}
+```
+
+
+Now you want to create a test. To do that, create a file inside tests/testthat, and use the prefix `test-`. I like to call my test file with the same name as the file where my tested functions are, for instance `test-sumNumbers.R`.
+
+Next, you can write tests like these.
+
+```{r, eval=FALSE}
+test_that("sumNumbers",{
+  expect_equal(foo1(2,3), 5)
+  expect_equal(foo1(c(2, 8), c(3, 1)), c(5, 9))
+  expect_error(foo1(2,'a'))
+})
+```
+
+Let’s decipher the tests.
+
+* The `test_that()` function contains the tests. You can group tests as you want. I suggest creating small groups: either tests related to a single function, or to a single logic unit of your code.
+* The first thing inside `test_that()` is a string. This is a free text string. Use it to identify what you are testing, and any other details that might be useful to developers. This string appears in your test results and it will help you to identify where you have test failures.
+* `expect_*`. The basic idea behind any test is to check the output of a piece of code against an expectation. In testthat you define expectation using the expect_*() functions. If your code matches the expectation, the test passes. There are several built-in expectations: expect_equal, expect_true, expect_false, expect_error, expect_message, and many more. Check the testthat documentation to find the one you need.
+
+You can run the tests in many different ways. Just a few are:
+
+* `testthat::test_local()` from the console. Run all test files.
+* Click on `Run tests` on top of the test file. Run only the opened test file.
+* Some `devtools` and `covr` calls trigger tests.
+* `R CMD CHECK`
+.
+And this is it really. At its core, this is all you need to use testthat.
+
+## Helper functions
+
+Now that you know the basics, let’s complicate things a bit. Suppose you have this function:
+
+```{r, eval=FALSE}
+#' summaryDataFrame
+#' @description Summaries sales dataframes
+#' @param df A dataframe with a column "seller" and a column "sales". 
+#' "sales" must be numeric
+#' @return An array
+summaryDataFrame <- function(df){
+  return(tapply(df$sales, df$seller, sum))
+}
+```
+
+This function expects data in a specific format. To test it, we need to create that data. We can do that by using a helper function. Helper functions can be created in a file inside `tests/testthat`, with the prefix `helper-`. When you run the tests, testthat will automatically run all files in `tests/testthat` in alphabetical order. This means that `helper-` files are sourced before `test-` files so that helper functions are available to the test environment.
+
+Note that `testthat` documentation recommends against `helper-` files. The advice is to put helper functions into the R folder. The reason for this is that the R folder is sourced before the tests anyway, so the result would be the same. I disagree with this advice. Code that is used only for tests should stay as close as possible to the tests, and not the business logic (the R folder). So I prefer to put test helper functions in the testthat folder, not the R folder.
+
+Let’s create a helper function to produce the right testing data for the function summaryDataFrame.
+
+```{r, eval=FALSE}
+#' createSellerData
+#' @description The function summaryDataFrame requires a dataframe with a 
+#' sales and a seller columns. Sales must be numeric. This function produces
+#' mock data for the function
+#' @return A data frame with two columns
+createSellerData <- function(){
+  df <- data.frame(sales = c(1,2,3,4,5,1),
+                   seller = c(rep('Joe', 3), rep('Jane', 3)))
+  return(df)
+}
+```
+
+Now you can write tests using the created data.
+
+```{r, eval=FALSE}
+test_that("test summaryDataFrame using custom data",{
+  # create mock data
+  inputDf <- createSellerData()
+  # call function
+  res <- summaryDataFrame(inputDf)
+  # expectations
+  expect_equal(res['Jane'], c('Jane'=10))
+  expect_equal(res['Joe'], c('Joe'=6))
+})
+```
+
+
+It is easy to get carried away with helper functions. In my experience, if you need too many helper functions it is a sign that something is wrong with your code implementation. It is either too complex, or too coupled. If you have more helper functions than test code, you might want to consider refactoring your code. In our example, maybe we should abstract `summaryDataFrame()` to use two vectors as arguments, rather than a data frame.
+
+# Wrap up
+
+This is it for this first part. I will explore mocking and test coverage on [part 2](/posts/2022-09-06_unit_testing_r_2/index.html).
+
+
