@@ -6,8 +6,6 @@ categories: [r, tetthat, testing]
 ---
 ![](img/cover.png)
 
-
-
 **In this first part**
 
 * Introduction to testing
