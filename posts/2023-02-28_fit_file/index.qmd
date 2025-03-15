@@ -1,0 +1,427 @@
+---
+title: "Read FIT files in R. A story on why you should not reinvent the wheel"
+description: "How to deal with FIT files on R, and a lesson on choosing the best tool for the job."
+date: "2023-02-28"
+categories: [coding]
+---
+![Photo by Ashley de Lotz on Unsplash.](img/cover.jpg)
+
+> Occasionally, time spent reinventing the wheel results in a revolutionary new rolling device. But usually it just amounts to time spent reinventing the wheel. -Steve Krug
+
+### What we will learn
+
+Today we will learn two things: why it is important to not reinvent the wheel, and how to use a package called `{FITfileR}` to import `fit` files into the R session.
+
+***NOTE:*** *In this article I will use some personal* `*gpx*`*,* `*tcx*`*, and* `*fit*` *files to demonstrate the analysis steps. You can use your own files. The principles and function will translate* as is *to any other file (at least any other Garmin file).*
+
+### Introduction
+
+One of the things I like to do in my free time is triathlon. And being in the line of work that I am, I am always drawn to all the numbers you can get out of an activity. Heart rate, power, speed/pace, cadence, vertical oscillation, left/right stroke balance, SWOLF, etc.
+
+A while ago I built a Shiny app to analyze my activities and plan my training year. The trickiest part of that app has always been the data ingestion: read into R files such as `gpx`, `tcx`, or `fit`.
+
+When I started that effort, there was no good tool to do this in R, so I wrote my own solution. And it was bad. Today we will see why.
+
+Note that we do not aim to do better than platforms like Garmin or TrainingPeaks. Our aim is not to “replace” those platforms. We want to understand how the data format works and how we can access the information stored in the activity files.
+
+### The different file options
+
+When you want to import your activity into R, you can do so from 3 file types: `gpx`, `tcx`, or `fit`. If you are a Garmin user, you can download either of these files from the cog option menu on the top left of the activity website page.
+
+You want to use the `fit` file, as this is your raw data. But reading a `fit` file is not trivial. If you try to open one in, let’s say, Visual Studio Code, it will show a bunch of unreadable symbols.
+
+Working with `gpx` and `tcx` is a lot easier. Those files are nothing more than an `xml` file in disguise.
+
+
+```{r,eval=FALSE}
+<?xml version="1.0" encoding="UTF-8"?>  
+<gpx creator="Garmin Connect" version="1.1"  
+ xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/11.xsd"  
+ xmlns:ns3="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"  
+ xmlns="http://www.topografix.com/GPX/1/1"  
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="http://www.garmin.com/xmlschemas/GpxExtensions/v3">  
+ <metadata>  
+ <link href="connect.garmin.com">  
+ <text>Garmin Connect</text>  
+ </link>  
+ <time>2015-12-12T09:08:42.000Z</time>  
+ </metadata>  
+ <trk>  
+ <name>base, w01d06, Fulham Palace Parkrun</name>  
+ <desc>hip OK. Endurance not back yet, but fine for now</desc>  
+ <type>running</type>  
+ <trkseg>  
+ <trkpt lat="51.4731337688863277435302734375" lon="-0.219133459031581878662109375">  
+ <ele>17.799999237060546875</ele>  
+ <time>2015-12-12T09:08:42.000Z</time>  
+ <extensions>  
+ <ns3:TrackPointExtension>  
+ <ns3:hr>98</ns3:hr>  
+ </ns3:TrackPointExtension>  
+ </extensions>  
+[...continue...]
+```
+
+### Reinventing the wheel: using the rvest package
+
+One could think: “why not use `{rvest}` to read an `xml` based file?” Let’s try that. We are going to use a simple run activity as an example.
+
+We will do two things: a plot of heart rate versus time, and a `leaflet` map of the activity.
+
+First, we import the activity into the R session.
+
+
+```{r}
+library(rvest)  
+
+activity <- read_html(file.path('data', "run_outdoor.gpx"))
+```
+So far so good. Now we need to spend some time studying our `gpx` file to find the nodes we need. I have done that for you, and I know that we can get:
+
+* The heart rate from the node `hr`.
+* The time from the `time` node.
+* The coordinates from the attributes `lat` and `lon` of the node `trkpt`.
+
+
+```{r, message=FALSE}
+library(lubridate)
+library(ggplot2)
+
+hr <- as.numeric(activity %>% html_elements('hr') %>%
+                   html_text2())
+
+times <- lubridate::as_datetime(activity %>%
+                                  html_elements('time') %>% 
+                                  html_text2())
+
+tryCatch({
+  plot_data <- data.frame(
+  times = times,
+  hr = hr)
+}, 
+error = function(err)(print(err)))
+
+```
+What is happening here? If we look closer at the `gpx` file, we see that `time` is not used only to record the timestamps, but also to mark the beginning of the activity. As a result, we have one extra `time` datapoint. We can remove that and proceed.
+
+
+```{r}
+df <- data.frame(
+  times = times[-1],
+  hr = hr
+  )
+
+ggplot(df, aes(x = times, y = hr)) +
+  geom_line()
+```
+
+Of course, we can plot a `{leaflet}` map.
+
+```{r}
+library(leaflet)
+
+lat <- activity %>% 
+  html_nodes('trkpt') %>%
+  html_attr('lat')
+
+long <- activity %>% 
+  html_nodes('trkpt') %>%
+  html_attr('lon')
+
+coords <- data.frame(
+  lon = long,
+  lat = lat)
+
+m <- coords %>%
+  as.matrix() %>%
+  leaflet( ) %>%
+  addTiles() %>%
+  addPolylines( ) %>%
+  fitBounds(lng1 = min(coords$lon), lat1 = min(coords$lat),
+            lng2 = max(coords$lon), lat2 = max(coords$lat))
+
+m
+```
+
+There are a few issues with what we have done so far.
+
+* We are responsible for scraping the activity files. Different activities and different devices will record fields in different ways. Trust me, it will take a long time to catch all the little variations between files.
+* It is time consuming. Even without the intra-file variations, we need to carefully study the `gpx` files.
+* It does not look good (i.e.., hard-coding the `[-1]` to remove the first timestamp). Of course, we can make it much better with some more effort. But this is exactly my point: why spend time on this, when something better actually exists?
+* We cannot easily (or at all) extract information such as laps/splits.
+* We cannot use `fit` files
+* We cannot analyze multi-sport activities such as triathlons. Only `fit` files can store those kinds of activities.
+
+### A better way
+
+Thanks to Mike L. Smith, we now have a pretty good R package to read the `fit` file format: the `{FITfileR}` package.
+
+Let’s put the package at work and let’s compare it with the `{rvest}` approach. First off, let’s work on the heart rate plot.
+
+
+```{r}
+library(FITfileR)
+
+activity <- readFitFile(file.path('data', "run_outdoor.fit"))
+
+listMessageTypes(activity)
+
+```
+The package is based on the concept of “messages”. The command `listMessageTypes` will give us all the available messages. The ones you often want to use are `record` (your actual data), and `lap` (if you need the splits). You can access each message using the function `getMessageByType`. This function always returns a `tibble`, except for messages of type `record`, when it can return a list of `tibbles`.
+
+Let’s get the run data
+
+
+```{r}
+activity_data <- getMessagesByType(activity, 'record')
+activity_data
+
+```
+We see here something we will see later as well. An activity can have many records. In this case, `record_1` is clearly not actual run data. We can discard it and only take data from `record_2`.
+
+We are now already in a position to make our heart rate plot.
+
+
+```{r}
+ggplot(activity_data$record_2, aes(x = timestamp, y = heart_rate)) +
+  geom_line()
+```
+
+And the map:
+
+```{r}
+library(dplyr)
+library(leaflet)
+
+m <- activity_data$record_2 %>%
+  select(position_long, position_lat) %>%
+  as.matrix() %>%
+  leaflet( ) %>%
+  addTiles() %>%
+  addPolylines( ) %>%
+  fitBounds(lng1 = min(coords$lon), lat1 = min(coords$lat),
+            lng2 = max(coords$lon), lat2 = max(coords$lat))
+
+m
+```
+
+It gets better. Do we want to add to the map markers corresponding to the activity splits? We need to take the lap timestamps from the lap data and plot the markers at the corresponding coordinates:
+
+
+```{r}
+laps <- getMessagesByType(activity, 'lap')
+
+markers <- activity_data$record_2 %>%
+  filter(timestamp %in% laps$start_time)
+
+m <- m %>%
+  addMarkers(markers$position_long, markers$position_lat)
+
+m
+```
+Isn’t this just a lot easier, faster, and more readable than `{rvest}`? Or of any custom-made parser you or I might have written in a couple of days?
+
+**Do not reinvent the wheel**. Always check if somebody else has already solved your problem. Chances are, somebody has, and you can build on that. In today’s example, thanks to Mike for this great package.
+
+Let’s be clear. This is not to say `{rvest}` is not a great package. It is. It was just not made for this specific purpose, and there is a better tool to read activity files. When you start to work on something, spend some time researching what people are doing in the same space. There is a good chance somebody has already solved your problem.
+
+#### On units
+
+The FIT files in this article are my own, so I work knowing it was recorded in metric units. If you do not know that *a priori*, you can use the attributes of the columns. For instance:
+
+
+```{r}
+attributes(activity_data$record_2$distance)$units
+
+attributes(activity_data$record_2$speed)$units
+```
+### A more complex example: a multi-sport activity.
+
+Now that we know the basics of the package, let’s do something we could not do without it: analyze a triathlon activity.
+
+For now, we will do something very simple. We will:
+
+* Get familiar with the `{FITfileR}` package and the way Garmin stores triathlon data.
+* Plot charts of pace or speed over distance for each of the three disciplines.
+* Plot maps for each of the three disciplines.
+
+#### Some initial set up and exploration
+
+First, let’s import our `fit` file into the R session.
+
+
+```{r}
+library(FITfileR)
+library(dplyr)
+library(leaflet)
+
+tri <- readFitFile(file.path('data', 'tri.fit'))
+tri_data <- getMessagesByType(tri, 'record')
+
+# examine the dimensions of each record
+lapply(tri_data, function(d){dim(d)})
+```
+In a triathlon we can expect at least 3 “records”: 1 swim, 1 cycle, 1 run. If we recorded the transitions separately (as I tend to do) then we have at least 5 records. Our first task it assign each `record_n` to the correct discipline.
+
+`record_1` only has one row, so we can discard it immediately. It will not have any activity data in it.
+
+Based on the number of data-points, we could guess that `record_4` is the cycle and `record_3` is the run. But what about the swim? Is it `record_2` or `record_5`?
+
+The best way to assign activity types and start times correctly is to look at the laps data.
+
+```{r}
+tri_laps <- getMessagesByType(tri, 'lap') %>%
+  select(timestamp, lap_trigger, sport)
+
+tri_laps
+```
+We now know the start and end timestamps for each of the activities. For instance, the cycle started at `2015-05-10 07:31:27` (when the first transition ended), and finished at `2015-05-10 08:15:04`. Armed with this information, we can identify each record as a swim, cycle, or run. For instance:
+
+
+```{r}
+head(tri_data$record_5 %>%
+       select(timestamp))
+```
+Now we can be sure that `record_5` was the swim, as the timestamps shown are within the swim timestamp range: from `2015-05-10 07:15:38` to `2015-05-10 07:29:14`.
+
+If we pay close attention, we notice how `record_5` actually starts before the `2015-05-10 07:15:38`. This happens often with `fit` files. I speculate that it is because a device like the Garmin watch I used here is starting to record some datapoints even before we press the “Start” button. We will need to remove those data points. We will filter the records dataset to include only the timepoints within the laps range.
+
+Before we move on with the rest of our data exploration and plotting, I will define a few shared functions.
+
+
+```{r}
+# plot a leaflet map for FITfileR data
+get_map_plot <- function(df){
+  m <- df %>%
+    select(position_long, position_lat) %>%
+    as.matrix() %>%
+    leaflet( ) %>%
+    addTiles() %>%
+    addPolylines( ) %>%
+    fitBounds(lng1 = min(df$position_long), lat1 = min(df$position_lat),
+              lng2 = max(df$position_long), lat2 = max(df$position_lat))
+  
+  return(m)
+}
+
+# calculate swim or run pace for FIT fileR data.
+# Swim velocity is expressed as min/100m.
+# Run velocity is expressed as min/km
+# Note that we assume that the distance passed in in meters
+# we could also use the speed column in the data for this, and simply
+# apply the appropriate units conversion
+get_run_swim_pace <- function(timestamp, distance, factor_unit = 1){
+  rsp <- c(NA, (as.numeric(diff(timestamp))/60/diff(distance))*factor_unit)
+  
+  return(rsp)
+}
+
+# calculate the cycling speed in km/h. We assume that the distance
+# is in meters
+get_cycle_speed <- function(timestamp, distance){
+  cs <- c(NA, (diff(distance/1000)/as.numeric(diff(timestamp)))*3600)
+  
+  return(cs)
+}
+
+# do a ggplot for FITfileR data. Always use distance for the x axis.
+# The user selects the y axis.
+get_plot <- function(df, y_axis){
+  p <- ggplot(df, aes(distance, .data[[y_axis]])) +
+    geom_step() +
+    ylab(y_axis)
+
+ return(p)
+}
+```
+#### Swim
+
+We are ready to get started with the swim. This is going to be quite straightforward.
+
+
+```{r, warning=FALSE}
+# get the data
+swim_data <- tri_data$record_5 %>%
+  select(timestamp, position_long, position_lat, distance) %>%
+  filter(timestamp >= tri_laps$timestamp[1] &
+           timestamp <= tri_laps$timestamp[3]) %>%
+  mutate(pace = get_run_swim_pace(timestamp, distance, 100))
+
+# do the plots
+swim_plot <- get_plot(swim_data, 'pace')
+swim_plot
+
+swim_map <- get_map_plot(swim_data)
+swim_map
+```
+Nothing special here: we pick the correct record (`record_5`), we select the columns we need, we filter for the correct timestamps, and we calculate a new column to get the swim pace.
+
+Note that I was not precise when I started the transition. That is why part of the swim is not in the water. There are ways to deal with this issue, but for now we’ll keep it as it is.
+
+#### Cycle
+
+```{r, message=FALSE}
+# get the data
+cycle_data <- tri_data$record_4 %>%
+  select(timestamp, position_long, position_lat, distance) %>%
+  filter(timestamp >= tri_laps$timestamp[4] &
+           timestamp <= tri_laps$timestamp[9]) %>%
+  mutate(speed = get_cycle_speed(timestamp, distance))
+
+# do the plots
+cycle_plot <- get_plot(cycle_data, 'speed')
+cycle_plot
+
+cycle_map <- get_map_plot(cycle_data)
+cycle_map
+```
+
+To extract information and plot them for the cycle portion of the race, we do exactly the same thing we did for the swim. Dealing with a new activity is not adding anything new to the process.
+
+#### Run
+
+```{r, message = FALSE}
+# get the data
+run_data <- tri_data$record_3 %>%
+  select(timestamp, position_long, position_lat, distance) %>%
+  filter(timestamp >= tri_laps$timestamp[10] &
+           timestamp <= tri_laps$timestamp[15]) %>%
+  mutate(pace = get_run_swim_pace(timestamp, distance, 1000))
+
+# do the plots
+run_plot <- get_plot(run_data, 'pace')
+run_plot
+
+run_map <- get_map_plot(run_data)
+run_map
+```
+Once again, we simply follow the exact same pattern as for the swim and the cycle.
+
+### Conclusion
+
+The `{FITfileR}` package is a great addition to your toolbox if you need to analyse `fit` files. It does not completely eliminate the need for a bit of exploration of the data source. However, the exploration is a lot simpler, standardised and faster than it would be if you were to write your own parser or to adapt existing packages as `{rvest}`.
+
+To circle back to the starting idea: do not reinvent the wheel.
+
+Another great advantage of the `{FITfileR}` package is that it allows to establish patterns in the analysis. We use the same functions to follow the same steps:
+
+* Extract the data.
+* Filter for the appropriate timestamps.
+* Apply data transformations.
+* Display results.
+
+These patterns are good. When we engineer this solution, we can visualize functions’ flow, objects, etc. This will help us re-use code as much as possible.
+
+---
+
+This is everything for today. If I see interest in the comments, I will continue this small series on fit files with more advanced analytics and with a Shiny app.
+
+What about you? Have you ever tried to analyze `gpx`, `tcx`, or `fit` files? What is your preferred strategy?
+
+#### Links
+
+* [FITfileR article](https://msmith.de/FITfileR/articles/FITfileR.html#plotting-cycling-dynamics)
+* [FITfileR GitHub](https://github.com/grimbough/FITfileR)
+* [fit standard from Garmin 1](https://developer.garmin.com/fit/protocol/)
+* [fit standard from Garmin 2](https://developer.garmin.com/fit/overview/)
+* [This article code and data](https://github.com/theasjblog/fitfilerdemo)

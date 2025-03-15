@@ -1,0 +1,139 @@
+---
+title: "R and Python vetiver package: a suitable MLOps solution?"
+description: "Should you use vetiver as a free, open source MLOps solution?"
+date: "2023-03-16"
+categories: [coding]
+---
+![Photo by Scott Graham on Unsplash.](img/cover.jpg)
+
+Today we will be dissecting the `{vetiver}` package, available for R and Python. We will look at its core functionalities and we will see how they stack against the traditional MLOps requirements. Armed of this new knowledge, we will see if we should place our bets on `{vetiver}` as a suitable MLOps solution for our work environment.
+
+Note that we will mention R in this article, but everything we discuss can be applied to Python.
+
+# What is `{vetiver}`?
+
+`{vetiver}` was first published in CRAN at the end of 2021. It then gained a lot of traction in 2022, following a presentation at the annual RStudio/Posit conference.
+
+R has plenty of advanced tools to retrieve and explore data, and to develop machine learning models. Just think of `{tidyverse }`and `{tidymodels}`. What was lacking was an elegant way to document, to deploy and to monitor the models. Enter `{vetiver}`.
+
+In `{vetiver}`’s official documentation we can read:
+
+> The goal of `{vetiver}` is to provide fluent tooling to version, share, deploy, and monitor a trained model.
+
+To the trained ears, this sounds a lot like “MLOps”.
+
+# What is MLOps?
+
+Before we can comment on `{vetiver}` as a suitable MLOps candidate, we need to define what MLOps is.
+
+Defining MLOps is not as easy as you might think. There is no universal agreement on what MLOps is, and most definitions you can find online reflect what different vendors want you to see.
+
+Today we will focus the discussion around a set of core features that I think any MLOps solution should offer.
+
+**Source control**. As DevOps, MLOps requires version control of its artifacts. For MLOps, this means versioning the model, the data, and any related code.
+
+**CI/CD**. Nobody wants to sit at their machine and manually deploying any new update. An MLOps solution must have a way to automate the deployment.
+
+**Governance**. It is crucial that, at any time, we know what models are in production and which version is used. There is increased pressure from regulators to have better model governance.
+
+**Metadata store**. A model without metadata is just a back box, no more than a random numbers generator. To be useful to anyone other than their creators, models need to be documented.
+
+**Monitoring**. We must monitor the performance of our models continuously and automatically.
+
+**Auto-training** and champion/challenger. With these features we can retrain existing models and create new models to challenge the performance of the existing ones. These are optional, but they are nice ones to have.
+
+Different products in the market, including `{vetiver}`, differentiate from each other by
+
+* Being better at one or more of the above features than the others
+* Being compatible with a different array of programming languages.
+
+In the rest of this article, we will consider different core functionalities of MLOps tools and we will see how `{vetiver}` performs in those areas.
+
+#### Model wrap up
+
+In most MLOps tools, this is the step where you upload the model. The tools capture metadata, dependencies and every other useful information. In `{vetiver}` this is done using the function `vetiver_model()`.
+
+A key advantage of `{vetiver}` is that it allows developers to continue working in their platform of choice, normally rsconnect. No need to save a rds or a pickle file and upload that to a different tool.
+
+#### Versioning
+
+Versioning is a fundamental feature of any MLOps solution. Commercial tools will implement their own system to track all the artifacts associated with the models, in addition to leveraging existing standards such as Git or SVN.
+
+`{vetiver}` solution to versioning is entirely based on the existing R ecosystem. `{vetiver}` uses pins to version models. Each model deployed is stored with an associated version ID, timestamp, and hash.
+
+Keep in mind that models can be large objects. If you have many models or frequent updates, then you will need to plan for storage.
+
+#### Deployment
+
+Usually MLOps tools expose models as API. `{vetiver}` is no different. In fact, `{vetiver}` gives us two options: deploy to rsconnect using plumber, or to a docker image. In either case, we can use built-in templates to build the files we need.
+
+Note that there is no mention of any testing in the deployment stage. This is the same limitation that the Git to rsconnect integration has: there is a direct deployment triggered by code change, but no automated test will run. Of course, you can (and should) build on the basic `{vetiver}` solution to add your own testing.
+
+#### Monitoring
+
+Models tend to fail silently. They will continue to return predictions, but no-one can say if the predictions are accurate until someone checks them.
+
+We need to monitor models frequently enough, ideally constantly. And we need to do so automatically.
+
+Monitoring is where most MLOps solutions focus their marketing campaigns. Most commercial solutions will give you several out of the box monitoring options and a dashboard. And often you can bring your own monitoring as well.
+
+How does `{vetiver}` do monitoring? It is no surprise that `{vetiver}` is using R tools to leverage monitoring. It is likely that modellers will already have their own preferred way to assess their models. With `{vetiver}` they can simply plug-in their existing metrics of choice.
+
+The outcome of the monitoring can be visualized in a flexdashboard that `{vetiver}` helps you build.
+
+#### Governance
+
+Governance is another feature that we can use to differentiate between MLOps solutions.
+
+There are different ways to look at governance. I will refer to it as the ability to provide a full list of models deployed to a given environment (i.e., production), their history, and their performance metrics. This information should be provided quickly and at short notice.
+
+Specialized MLOps solutions will have dedicated dashboards that can pull all this information together with a couple of clicks. Less optimized solutions might require a bit of extra-work, but they will still be able to answer the question in minutes.
+
+What about `{vetiver}`? `{vetiver}` does not mention governance specifically in its documentation, and for a good reason. There is no dedicated functionality for this. It is up to the user to build a governance solution with the tools and information available.
+
+You probably see where the problem is with this: it requires a considerable amount of planning and human effort to implement a good solution.
+
+# Wrap up
+
+Now that we have explored different MLOps functionalities, we can put together our little checklist for `{vetiver}`:
+
+* Bundle a model with metadata: check ✅
+* Versioning: check ✅
+* Monitoring: check ✅
+* Deployment: check ✅
+* Governance: not quite ⚠️
+* Recommended: not really ❌
+
+That might be surprising. Let me elaborate.
+
+First of all, governance is very important, and in some industries it is a non-negotiable requirement. Fail that, and you are out of business.
+
+The other concern I have on recommending `{vetiver}` as an MLOps solution is on the overall philosophy behind its implementation.
+
+`{vetiver}` was designed for modellers. With `{vetiver}` modellers can easily implement MLOps-like model life-cycles.
+
+But is this the best professional figure to take care of MLOps? Modellers are the best people to develop a model. However, operationalization and production-grade control of the entire life cycle of the model require a completely different skillset. Will you put your data analysts in charge of building and maintaining DevOps pipelines? I don’t think so. For the same reason, I would not want modellers to have to worry about managing deployment details, designing a scalable monitoring solution, etc. For this, I want specialized professionals.
+
+The more specialized the professionals are, the less likely they are to want to do this in R, or even in Python. As a result, `{vetiver}` very quickly loses its appeal.
+
+Finally, `{vetiver}` is an open source solution. It comes with no warranty and no support, beside its community of users. If you buy into it, you should know that you will be entirely responsible for its support and its maintenance. What you save in purchase, you might have to spend in design, development, and maintenance. You need to make sure that your organization is up to this challenge.
+
+I do think `{vetiver}` is a good package and a very welcomed addition to the R and Python toolkit. However, I caution against its use, at least in large organizations with several tens if not hundreds of models.
+
+# When can `{vetiver}` be a good option?
+
+I think you can and should seriously consider `{vetiver}` if you:
+
+* Are a small company with very few models, and a very limited budget for MLOps.
+* Have very skilled R/Python developers, and not just modellers.
+* Are a University team (or even solo student/post doc/professor).
+* Are thinking about trying out more mature MLOps solutions, but you want to start to train your modellers to a new way of working.
+* Only have R or Python models.
+
+What is your experience with `{vetiver}`? Is your organization using it as an MLOps solution? Let me know about your experience with the package!
+
+#Links
+
+* [`{vetiver}` home](https://vetiver.rstudio.com/)
+* [`{vetiver}` user guide on Posit](https://docs.posit.co/connect/user/vetiver/)
+
