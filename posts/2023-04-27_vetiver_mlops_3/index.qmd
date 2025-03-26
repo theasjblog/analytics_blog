@@ -1,5 +1,5 @@
 ---
-title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 2"
+title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 3"
 description: "The feedback loop: monitoring."
 date: "2023-04-27"
 categories: ["mlops"]

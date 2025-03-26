@@ -1,0 +1,109 @@
+---
+title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 4"
+description: "The project retrspective. Was vetiver a good choice?"
+date: "2023-05-05"
+categories: ["mlops"]
+---
+![Image by the author.](./img/cover.png)
+
+This is the final article in a series about building an MLOps solution using only the R ecosystem and `{vetiver}`. I highly recommend starting from the [first article](../2023-04-13_vetiver_mlops_1/index.qmd).
+
+In this article, we will reflect on what worked, what didn’t, and what needs to be improved in order to adopt this solution as a reliable MLOps solution.
+
+### The retrospective
+
+In the previous three articles, we looked at the design of our toy solution, model development, deployment, and monitoring. Now it’s time to revisit those parts and analyze what went well and what didn’t.
+
+### What worked
+
+Overall, our toy experiment was successful. While it is significantly simplified compared to a real-world implementation, it still meets our main requirements of having an automatic deployment system that validates the model, produces logs, and can monitor the deployed model.
+
+Putting together the entire toy example was also relatively fast and simple. Someone with reasonable R skills could put together a comparable, or better, solution in a reasonable amount of time.
+
+However, the question we had at the beginning of the series was not **_if_** we can build it. The question was: **_should_** we build it? To answer this question, let’s talk about what did not work.
+
+### What didn’t work
+
+Several limitations are seriously compromising the successful implementation of this toy example as a real-world MLOps solution.
+
+Some of these shortcomings are a result of the fact that this is a toy example. For example, using a single repository for all the components is not good architecture, but that is simple enough to fix.
+
+Using a local pin board is not a great idea. While pins are great, they should not be used for everything and certainly not on a local board. But, once again, this is simple to fix. Just use other storage solutions or a board saved in a data lake.
+
+There are other issues that are not so easy to fix. The most important one is scalability.
+
+#### Scalability
+
+Our example is designed to work with a single model. Both the deployment script and the monitoring app focus on the one model we created. The solution is scalable, but some serious planning is needed. We need to answer questions such as:
+
+*   How do we deploy different models?
+*   Do we create individual pipelines for each model, perhaps from a template?
+*   Do we create a single pipeline to control all models?
+*   Do we create a single monitoring dashboard that allows us to drill down into selected models?
+*   Do we create individual monitoring dashboards, one for each model?
+
+Regardless of how we answer those questions, we then need to undertake a significant effort to develop production-grade pipelines and monitoring dashboards. You can have a glimpse of the effort required by comparing how the toy dashboard was implemented in this series with how it should be developed at a production-grade level [here](../2022-10-16_build_professional_shiny_1/index.qmd). And it is not just about general “code quality”. Our dashboard in its current state is not doing any live monitoring. This is not a hard fix (we could borrow [this](https://rviews.rstudio.com/2019/08/13/plumber-logging/) from `{plumber}`), but we need to keep in mind that without live monitoring of the API health we are adding a lot of risk to the project.
+
+#### Logs
+
+Logs suffer from the same scalability issue as well. Having R ingest large volumes of logs is not ideal, even if done through a scheduled process as we did in our toy example. We imposed this limitation on ourselves by wanting to stay in R, but in reality, if you need to process large amounts of logs, you should use dedicated tools, such as the ELK stack.
+
+#### Data Storage
+
+We already mentioned the limitations of pins, particularly when it comes to training/test data. In general, we should look at other ways and locations to store some of the data involved, depending on the amount of data and governance requirements. We could consider dedicated data versioning solutions such as DVC, or databases to store processed logs. We should also consider unstructured data storage solutions such as containers in a data lake to store our model artifacts. Those solutions normally ensure better up-time, backups, and governance.
+
+#### Overall Architecture
+
+We decided to develop a solution that was R-based so we used only R and Posit products. We did this to replicate resources commonly available in most organizations supporting R, but also to address a specific use case: vetiver as an MLOps solution is likely to appeal to individuals and teams looking at an R (or Python) MLOps solution, rather than something like MLOps in Azure.
+
+This decision seriously hampers the quality of our outcome. Not using dedicated tools like Docker containers, blob data storage, or log ingestion is detrimental to the scalability and robustness of the solution.
+
+#### Governance
+
+Our toy example focuses on the technical side of MLOps. It does not touch on governance. Of course, we can easily get a list of deployed models by getting the list of available pins in the model board, or we can have specific individuals approve pull requests that would trigger the deployment pipeline, but these solutions might not be strong enough in highly regulated environments, typically the medical and financial sectors.
+
+#### AutoML
+
+We did not consider AutoML at all in our toy example. It is technically possible to implement it through the H2O package (available for both R and Python), but I figured it was going to simply complicate our example too much without giving us any new information relevant to our final goal.
+
+### Was it worth it?
+
+Our main goal was to answer the question:
+
+> “Can we build a full MLops solution with `{vetiver}`? And, more importantly, should we do it?”
+
+The answer is yes, we can build it. We can make it more and more robust if we start to expand our toolbox to use external services to better control specific parts of the workflow.
+
+But is it worth it? My conclusion from this experiment confirms what I suspected when I wrote [this overview article](../2023-03-16_vetiver_for_mlops/index.qmd) on `{vetiver}`. `{vetiver}` is not a full MLOps solution suited for large enterprises.
+
+Another consideration is that this solution is explicitly designed for R/Python. The more you want to make it robust and start to use other tools, the more you move away from the knowledge domain of the R/Python modeller. You will start to need ML engineers, data engineers, DevOps specialists, etc. And the more you do that, the less likely you are to use `{vetiver}` for any of the MLOps tasks.
+
+Does that mean we should not consider it all? No, it does not. In fairness, I do not think `{vetiver}`’s main target are enterprises or organizations with in-house extensive MLOps expertise. I think vetiver is well suited for realities such as labs in academia or small organizations operating outside strict regulations and working with a limited amount of models. `{vetiver}` could also be used by teams in large organizations to keep track of their experiments, including the one that do not make it to production.
+
+### A note on how we used vetiver
+
+If we reflect on our experiment, did we really used `{vetiver}`? `{vetiver}` has two main technical features:
+
+*   Template for a plumber API
+*   Template for a monitoring app
+
+We did not use any of those two. We customized our plumber API quite heavily, and we just rejected the idea of using `{flexdashboard}` (and I recommend you do the same in production). From the technical point of view, we could have build the same solution without `{vetiver}`.
+
+The value `{vetiver}` can add is more subtle, but far from insignificant. It invites modellers to be more diligent in their documentation by adding metadata to the `{vetiver}` model object and by creating model cards. Those two things alone make `{vetiver}` an extremely valuable ally to MLOps and can ensure a longer life for models. Even more, `{vetiver}`’s model cards and metadata can be helpful even in more advanced MLOps solutions.
+
+### Wrap up
+
+Before we close this series, there is something else I’d like to stress. Often, solutions like this one reduces MLOps to just as a set of technical steps.
+
+MLOps is not a technical solution. MLOps is a behavior change. Wanting to “do MLOps” has little meaning on its own. There is an interesting concept mentioned in _Introduction to MLOps_ by Mark Treveil. It is 25% concept. MLOps as a whole is the sum of four components that an organization must develop in equal parts:
+
+![MLOps is a behavioral change. The organization needs to have a mindset of continuous improvement, automation, and quality first. MLOps needs in equal measure good practices in data management, model development, it needs to have a DevOps foundation, and the business needs to be ready to undertake the behavioral changes needed. Image by the author.](./img/mlops.png)
+
+When even a single one of those parts is missing, this toy example can be improved as much as you want but it will never be MLOps. Modellers will find shortcuts to trick the system. They will consider MLOps a source of extra work, rather than a way to improve quality and efficiency long term.
+
+In other words, we did not build an MLOps solution. We built a tool that, in some circumstances, can automate some aspects of the model life cycles. Real MLOps is a much more complex world than a few lines of code.
+
+
+# Links
+
+* [Part 1 of the series](../2023-04-13_vetiver_mlops_1/index.qmd)
