@@ -1,0 +1,127 @@
+---
+title: "Essential Shiny libraries"
+description: "Step up you Shiny game with these libraries."
+date: "2023-06-08"
+categories: ["r, shiny"]
+---
+![Photo by Adrien WIESENBACH on Unsplash.](./img/cover.jpg)
+
+Shiny is a popular R and Python dashboard framework. Shiny has a lot of extensions you can use to enrich your application. You do not need to use them, you can build an application using “base” Shiny, but that is almost like trying to develop an R analysis using only base R. Is it possible? Sure. Is it a good idea? Most likely not.
+
+This article does not want to be a comprehensive list of all the available extension. If you want something like that, have a look at [this page](https://github.com/nanxstats/awesome-shiny-extensions).
+
+This article is a curated list of the packages I personally use often and I find the most helpful. This list will include packages focusing on engineering Shiny, packages that can help with logging, testing and debugging, and of course UI extension.
+
+Let’s get started.
+
+## Framework
+
+I talked about Shiny frameworks in the [past](../2023-01-21_shiny_framework/index.qmd). Here, I will just say that I recommend `rhino` and `golem`, depending on your specific use case.
+
+## Testing
+
+### shinyloadtest
+
+This is a package you can use to monitor the performance of your application under load. With this package you will be able to answer the question “how does my app performs with 2 concurrent users? With 20? And with 2000?”.
+
+The package will compile an interactive document you can explore to identify possible issues.
+
+Setting up `shinyloadtest` and understanding its report requires some effort, but the reward is well worth the initial investment.
+
+### shinytest
+
+Testing UI elements automatically is always challenging. When I started my work with Shiny, I had to rely on a static document detailing the sequence of user’s interaction with the application. A tester had to perform the steps manually and record the output on the document before sending it back to me for approval or fixes.
+
+`shinytest` removes this nightmare. You can interact with your application in “recording” mode. The package records what you do and what happens to the UI. This record is saved as a script. The library can automatically re-run the script and compare the outcome with was recorded as a reference. If anything has changed, you’ll be notified.
+
+Simply put, `shinytest` is a form of automated regression testing.
+
+## Debugging
+
+Debugging shiny can be painful. The _de facto_ golden standard is the `print` statement. Enough said…
+
+Thankfully, some libraries can help with debugging.
+
+### shinylogs
+
+[Logging](https://medium.com/@adrian.joseph/an-introduction-to-logging-with-examples-in-r-18874e128db2) is a vital part of debugging. Good logs will help you quickly identify the root cause of an issue.
+
+In Shiny, we can use traditional logging frameworks such as `log4r` or `futile.logger`. But it can be tedious to cover every user’s interaction with the UI.
+
+With `shinylogs` you only need a single line of code at the beginning of the server file to log every user’s click.
+
+The only downside is that logs can be a bit verbose, and you might end up with very large log, but this is a much better problem to have than no logs at all.
+
+### reactlog
+
+Shiny reactivity can become messy, particularly if you do not use modules or other techniques to compartmentalize your code base.
+
+`reactlog` can display an interactive diagram of your reactivity tree. This will help you identifying when you are needlessly refreshing parts of the UI.
+
+## Performance management
+
+Several packages are useful to assess the performance of your application. We already looked at some: `shinyloadtest` and `reactlog`. Let’s consider a few more.
+
+### shiny.benchmark
+
+This is useful in A/B testing scenarios. The package allows you to automatically compare the performance of two versions of the same app, for example two different branches or two different commits.
+
+### shiny.worker
+
+This package allows to execute heavy computation asynchronously. By default, Shiny becomes unresponsive while a calculation is running. With this package, you can set up a dedicated worker that takes care of your expensive calculation while the app stays responsive.
+
+Note that this package is not an excuse to neglect optimization. Your first concern should always be to create responsive apps in the first place. A powerful pattern is to use pre-calculate data, rather than relying on the application to do all the heavy lifting from raw data to displayed information.
+
+## UI
+
+### shinycssloaders
+
+When you are performing a lengthy operation it is good practice to let your user know what is going on. You can use a progress bar, and that is OK, but not always the most elegant solution. One of the principles of good UI/UX design is that these kind of messages should be close to where the user would expect to see the consequence of his actions. Shiny’s default progress bar is always located at the bottom left of the screen, which might be far away from the user’s focal point.
+
+`shinycssloaders` resolve this issue by allowing you to place a “waiting” bar and message right where it should go.
+
+### waiter
+
+`shiny.worker` and `shinycssloader` can help you keep the user informed about the status of the application while it runs. But what if your application is slow to start? Maybe at start time it needs to fetch some data through the internet, and the connection is slow. How can you take care of your user in this scenario?
+
+`waiter` will place a full page “loading…” message covering the whole UI, letting your user know that the app is working, and not just “stuck”.
+
+### bslib
+
+`bslib` was one of the first and still is one of the most popular packages used to customize the look of Shiny apps. It has a straightforward integration with Shiny, it is reasonably simple to use, and it offers good flexibility, even if not as much as other packages that we will see later.
+
+### shiny.i18n
+
+I work and live in Canada, a bi-lingual country. When it comes to dashboards, one should always think about having an English and a French version. This is not trivial to set up. If you plan to develop an application used globally, then the problem increases in scope very quickly.
+
+`shiny.i18n` simplifies the localization process. You simply create a translation database in the format of a JSON or a csv file, and `shiny.i18n` will take care of the rest for you.
+
+### rclipboard and tippy
+
+Sometimes your app will produce text that a user must copy and paste somewhere else. By default, users will have to drag the mouse’s cursor over the text and then select copy. `rclipboard` and `tippy` allow to create a “Copy to clipboard” button that will do just that: copy the content of a text UI element to the clipboard so that it can be pasted wherever it needs to go.
+
+## Use with care
+
+In this sections I include some extension libraries that you should consider with care. They can be quite powerful and take your application to a whole new level, but they can add significant complexity. If your team can handle it, great, go for them. But if your team struggles, try to avoid them if possible. Focus on getting the basics right first, then gradually step up your Shiny game.
+
+You will notice that most of the packages in this section deals with modifying the UI. The added complexity here comes from the fact that when you use them you should also be familiar with other frameworks such as `Fluent UI` or `react`.
+
+Finally, if you find yourself having to inject a lot of javascript of css into your Shiny application, maybe you should consider developing the front-end directly in javascript, and leave R to the backend.
+
+Here are the libraries I would consider:
+
+`shiny.react`: Add react to your application.
+
+`shiny.fluent`: Add Fluent UI to your application.
+
+`shiny.blueprint`: Add Blueprint to your application.
+
+`shiny.dashboard`: Add Fomantic UI to your application.
+
+## Wrap up
+
+As you can see, there are plenty of options out there to unlock the power of Shiny. You can improve your engineering with extensions focused on logging and debugging, you can improve an manage performance, and you can do almost anything when it comes to the UI.
+
+Just make you sure you understand how each library works, and that you team is prepared to include the new libraries to the workflow.
+
+What about you? Do you have any Shiny package that you like to use all the time and is not included in this list? Add it to the comments!
