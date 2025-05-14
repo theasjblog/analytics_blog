@@ -1,0 +1,201 @@
+---
+title: "Programmatic plumber - Part 1: the basics"
+description: "How to unlock the power of plumber API."
+date: "2023-11-22"
+categories: [ai]
+---
+![Image generated with Canva AI Magic Media.](img/cover.png)
+
+### What We'll Learn Today
+
+Today, we'll enhance our Plumber API skills by using “programmatic Plumber”. This will unlock features such as:
+
+* Simplifying complex APIs
+* Handling errors
+* Modifying routing
+
+In this first part, we'll examine the basics of programmatic Plumber and how it can be used to reduce the complexity of large APIs.
+
+### Introduction
+
+In a [previous article](../2023-08-01_intro_plumber/index.qmd), we discussed structuring an API in a clean, simple way using annotations to define the API. For instance, consider this API that returns a histogram plot:
+
+```{r, eval=FALSE}
+library(plumber)  
+  
+#* @get myPlot  
+#* @serializer png  
+function() {  
+ hist(rnorm(100))  
+}
+```
+
+The lines of code starting with `#* @<tag_name>` are called annotations. We use them here to specify a `GET` endpoint and that the response must use the `png` serializer.
+
+Using annotations to define an API is perfectly acceptable and, in fact, what I recommend for most beginners. Annotations allow you to visually separate the code required to define the API (server logic) from the code necessary to perform the API task (business logic).
+
+However, there are cases when we need more control over our endpoints and the routing of the request. In such scenarios, we should consider using programmatic Plumber development.
+
+### Our First Programmatic Plumber API
+
+Let's start by defining a router. In `{plumber}`, the router is responsible for handling the request, dispatching it to the endpoints, and managing any errors. We can initialize a router with:
+
+```{r, eval=FALSE}
+library(plumber)  
+  
+pr_run(pr())
+```
+
+This router is completely empty. Any incoming traffic will cause 404 errors as the router doesn't know how to handle requests.
+
+If we want to stick to defining the API using annotations, we can pass a `plumber.R` file to the router to start a working API:
+
+```{r, eval=FALSE}
+# entrypoint.R  
+library(plumber)  
+  
+pr_run(pr = plumb('plumber.R'))  
+
+
+# plumber.R  
+#* @get myPlot  
+#* @serializer png  
+function() {  
+ hist(rnorm(100))  
+}
+```
+### The Basics
+
+The first thing we want to do is convert our original annotation example into a programmatic version using the `pr_get`method:
+
+```{r, eval=FALSE}
+# /R/myPlot.R  
+myPlot <- function() {  
+	hist(rnorm(100))  
+}  
+  
+# plumber.R  
+library(plumber)  
+library(here)  
+source(here::here('R', 'myPlot.R'))  
+api <- pr() %>%  
+ pr_get(path = "/myPlot",  
+     handler = myPlot,  
+     serializer = serializer_png()) %>%  
+ pr_run()
+```
+
+It's fairly straightforward to convert the annotations into programmatic definitions. The annotations become arguments to the `pr_get` method.
+
+**Note:** RStudio uses the annotations to automatically recognize a `{plumber.R}` file as an API file. When you use annotations, RStudio will display a “Run API” button. When you use programmatic `{plumber}`, RStudio will not show that option. You can still run the API using `source`.
+
+So far, we know how to convert existing annotated APIs into programmatic APIs, but it's not yet clear why we should do it. We have not unlocked any new functionalities, nor have we simplified our code.
+
+In the next section, we will see how using programmatic `{plumber}` can simplify our codebase.
+
+### Merge multiple endpoints
+
+The `pr_mount` method allows us to nest endpoints within each other. This technique is crucial for managing the complexity of large APIs. When we use `pr_mount`, we can define logically separated groups of endpoints in separate files, and then merge them together in a single root API.
+
+Consider an example where everything is defined in the same file. We will have two endpoints: `plots`, which we already know, and `randLetters`, which will return some randomly generated letters.
+
+```{r, eval=FALSE}
+######## R/myPlot.R  
+myPlot <- function() {  
+	hist(rnorm(100))  
+}  
+  
+# R/randLetters.R  
+randomLetters <- function(n = 10) {  
+ print('letters calculation')  
+ sample(letters, n, replace = TRUE)  
+}  
+
+
+######### plumber.R  
+library(plumber)  
+library(here)  
+
+# define root router  
+root <- pr()  
+# define the plot router  
+plots <- pr() %>%  
+ pr_get(path = '/myPlot',  
+     handler = myPlot,  
+     serializer = serializer_png())  
+
+# define the random letters generator router  
+randLetters <- pr() %>%  
+ pr_get(path = '/randLetters',  
+     handler = randomLetters,  
+     serializer  = serializer_json())  
+
+# mount to root  
+root %>%  
+ pr_mount('/mountPath_1', plots) %>%  
+ pr_mount("/mountPath_2", randLetters) %>%  
+ pr_run()
+```
+
+If we start the API, we will see two endpoints: `/mountPath_1/plots` and `/mountPath_2/randLetters`.
+
+Defining all routers in the `plumber.R` file is not ideal. We can compartmentalize the code as follows:
+
+```{r, eval=FALSE}
+############## inst/plumber_myPlot.R  
+library(plumber)  
+library(here)  
+lapply(list.files(here::here('R'), full.names = TRUE),  
+         function(d) {source(d)})  
+  
+plots <- pr() %>%  
+ pr_get(path = "/myPlot",  
+     handler = myPlot,  
+     serializer = serializer_png())  
+
+
+############## inst/plumber_myPlot.R  
+library(plumber)  
+library(here)  
+lapply(list.files(here::here('R'),  
+         full.names = TRUE),  
+    function(d) {source(d)})  
+randLetters <- pr() %>%  
+ pr_get(path = '/randLetters',  
+     handler = randomLetters,  
+         serializer = serializer_json())  
+
+
+################# plumber.R  
+library(plumber)  
+library(here)  
+
+# source the individual routers  
+source(here::here('inst', 'plumber\_myPlot.R'))  
+source(here::here('inst', 'plumber\_randLetters.R'))  
+
+# root router  
+root <- pr()  
+
+# mount to root  
+root %>%  
+ pr_mount('/mountPath_1', plots) %>%  
+ pr_mount("/mountPath_2", randLetters) %>%  
+ pr_run()
+```
+
+The advantage of using `pr_mount` is that we can break down the complexity of large APIs. Additionally, we can execute and test each routing independently, without having to load the entire root API.
+
+### Conclusion
+
+This concludes the first part of this series on programmatic `{plumber}`.
+
+We've seen how we can easily convert from annotation to programmatic style and how we can keep existing annotated `plumber.R` APIs and enrich them with programmatic APIs.
+
+We also discussed how we can use programmatic `{plumber}` to manage the complexity of large APIs using mounting.
+
+In the next article, we will explore more powerful features of programmatic `{plumber}`: error handling and defining the API documentation.
+
+### Resources
+
+* [Official plumber documentation](https://www.rplumber.io/articles/programmatic-usage.html)
