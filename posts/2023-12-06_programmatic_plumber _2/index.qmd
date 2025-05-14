@@ -1,0 +1,278 @@
+---
+title: "Programmatic plumber - Part 1: error handling and documentation"
+description: "eturn meaning errors and document your API."
+date: "2023-12-06"
+categories: [ai]
+---
+![Image generated with Canva AI Magic Media.](img/cover.png)
+
+### Introduction
+
+Welcome to the second part of our series on programmatically developing R `{plumber}` REST APIs. It might be helpful to start with the [first article](../2023-11-22_programmatic_plumber_1/index.qmd) if you haven't already.
+
+In our previous discussion, we explored how to convert annotated `{plumber}` APIs to programmatic ones. Interestingly, we found that we don't necessarily have to do this, as an annotated plumber file can be passed directly to a `pr()` router. Additionally, we discovered the advantage of mounting multiple plumber APIs to a single router to simplify large APIs.
+
+Today, we're going to delve into two critical aspects of programmatic plumber: error handling and API documentation.
+
+### Handling 404 Errors
+
+Let's begin our exploration of error handling with the 404 error. This error is usually linked with the message “resource not found”. If a user mistakenly enters an incorrect API URL, plumber will respond with a default message, “404 — path not found error”.
+
+Using programmatic plumber we can intercept the default message and customize it.
+
+```{r, eval=FALSE}
+# We already saw the content of R/myPlot.R and randomLetters.R.  
+# Here I show only R/handler404.R  
+  
+############# R/handler404.R  
+# This is the error handler function  
+handler404 <- function(req, res){  
+  # do not do this in real API: not found should always be 404.  
+  # We do 403 here just to demonstrate that this apprach works  
+  res$status <- 403  
+ # return a custom response  
+ res$body <- sprintf('Ops, resource not found: %s', req$PATH_INFO)  
+}  
+
+
+############ plumber.R  
+# set up  
+library(plumber)  
+lapply(list.files(here::here('R'),   
+         full.names = TRUE) ,   
+    function(d){source(d)})  
+
+# define empty router  
+root <- pr()  
+# define plot endpoint  
+plots <- pr() %>%  
+   pr_get(path = '/myPlot',  
+          handler = myPlot,  
+          serializer = serializer_png())  
+
+# define random letters endpoint  
+randLetters <- pr() %>%  
+   pr_get(path = '/randLetters',  
+          handler = randomLetters,  
+          serializer = serializer_json())  
+
+# mount everthing  
+root %>%  
+   pr_mount('/mountPath_1', plots) %>%  
+   pr_mount("/mountPath_2", randLetters) %>%  
+  # here we add the 404 error handler.  
+   pr_set_404(handler404) %>%  
+   pr_run()
+```
+
+Please be aware that the result status code was switched from 404 to 403. This was merely to show it's possible, but it's not something you should typically do without a good reason. 403 errors differ significantly from 404 errors.
+
+It's worth mentioning that if we opt for mounting, we must define `pr_set_404` at the root route level. Any 404 handlers set within the “child” APIs won't be taken into consideration.
+
+### Handling Server Errors
+
+The 404 error mentioned above typically results from a user mistake: an incorrect URL leading to a non-existent resource.
+
+However, there's a different type of error: the server error, often a 500 error. If you've worked with plumber, you might be familiar with this. The response is usually a vague _“An error has occurred”_, which doesn't provide much insight for developers or users.
+
+We can improve on this. By utilizing the method `pr_set_error`, we can dictate how errors are reported.
+
+```{r, eval=FALSE}
+# We already saw the content of R/myPlot.R and randomLetters.R.  
+# Here I show only R/errorHandler.R and R/giveError.R
+
+# define empty router  
+root <- pr()  
+  
+################# R/errorHandler.R  
+# err is the error message captured by the code  
+errorHandler <- function(req, res, err = 'default'){  
+  # here we can fine tune our error message to give different info depending  
+  # on the endpoint that was hit, for example, or give different status codes  
+  # depending on the type of error we detect  
+  # Note. Here we set the error code to 505. Normally you should never do this,  
+  # as 500 and 505 are two very different types of errors.  
+  res$status <- 505    
+    
+ # return a custom message  
+  list(error_source = sprintf("Error from endpoint: %s", req$PATH_INFO),  
+       error_message = as.character(err))  
+}  
+
+
+############## R/giveError.R  
+# in this function we try to get the log of a string.   
+# This will always cause an error  
+giveError <- function(){    
+ log('a')  
+}
+
+
+########### plumber.R  
+# set up  
+library(plumber)  
+lapply(list.files(here::here('R'),   
+         full.names = TRUE) ,   
+    function(d){source(d)})  
+# define empty router  
+root <- pr()  
+# define plot endpoint  
+plots <- pr() %>%  
+   pr_get(path = '/myPlot',  
+          handler = myPlot,  
+          serializer  = serializer_png())  
+# define random letters endpoint  
+randLetters <- pr() %>%  
+   pr_get(path = '/randLetters',  
+          handler = randomLetters,  
+          serializer  = serializer_json())  
+# this is an entrypoint that will always return an error  
+errGenerator <- pr() %>%  
+  pr_get(path = '/giveError',  
+         handler = giveError,  
+         serializer  = serializer_json()) %>%  
+ # add the error handler function  
+  pr_set_error(errorHandler)  
+# mount to root  
+root %>%  
+  pr_mount('/mountPath_1', plots) %>%  
+  pr_mount("/mountPath_2", randLetters) %>%   
+  pr_mount('/mountPath_3', errGenerator) %>%  
+  pr_run()
+```
+
+It's important to note that unlike `pr_set_404`, `pr_set_error` must be defined within the "child" API. This is beneficial as it provides granular control over error handling. We can establish different error handling procedures and distinct error messages based on the router. In the example above we simply provided a generic hanlder at the root level to handle any server error.
+
+Keep in mind, for easier file management, consider defining the `plots` and `randomLetters` routers in separate files. This keeps `plumber.R` manageable, as we discussed in the first article of this series.
+
+### Documentation
+
+R plumber APIs are documented using the openapi standard. Essentially, it's a comprehensive JSON file filled with metadata about the API. There are several renderer that interpret the JSON into a user-friendly format. The default one with plumber is `swagger`, but `redoc` and `rapidoc` are also viable options. In this section, we'll explore how to switch the interpreter, the reasons for doing so, and lastly, how to add documentation to the API.
+
+### Switching openaAPI interpreter
+
+Switching the `openAPI` interpreter is quite straightforward. Simply load the necessary libraries and add a `pr_set_docs` call to your API's main router.
+
+```{r, eval=FALSE}
+############ plumber.R  
+# set up  
+library(plumber)  
+library(redoc) # if you want to use redoc  
+library(rapidoc) # if you want to use rapidoc  
+  
+lapply(list.files(here::here('R'),   
+         full.names \= TRUE) ,   
+    function(d){source(d)})  
+
+# define empty router  
+root <- pr()  
+
+# define plot endpoint  
+plots <- pr() %>%  
+   pr_get(path \= '/myPlot',  
+          handler \= myPlot,  
+          serializer  \= serializer_png())  
+
+# define random letters endpoint  
+randLetters <- pr() %>%  
+   pr_get(path \= '/randLetters',  
+          handler \= randomLetters,  
+          serializer  \= serializer_json())  
+
+# mount to root  
+root %>%  
+ # comment out the two pr_set_docs you do not want  
+  pr_set_docs('swagger') %>% # default, no need to explicitly define it  
+  pr_set_docs('redoc') %>% # to use redoc  
+  pr_set_docs('rapidoc') %>% # to use rapidoc  
+  pr_mount('/mountPath_1', plots) %>%  
+  pr_mount("/mountPath_2", randLetters) %>%   
+  pr_run()
+```
+
+While there are some aesthetic variations, the three interpreters also come with distinct features. For example, the `redoc`interpreter includes a quick download button for the OpenAPI JSON specification file, which we'll explore in more detail shortly. The `rapidoc` interpreter, on the other hand, provides an option to upload a JSON file. This is particularly useful for testing POST endpoints if you'd rather not employ an external tool such as Postman.
+
+Beyond these disparities, the choice between the three interpreters primarily hinges on personal preference.
+
+During our use of the `redoc` interpreter, we discovered how it can facilitate the download of the `OpenAPI` JSON specification. This is a considerably large file, and here's a sneak peek at the beginning:
+
+```{r, eval=FALSE}
+{  
+    "openapi": [  
+        "3.0.3"  
+    ],  
+    "info": {  
+        "description": [  
+            "API Description"          
+			  ],  
+        "title": [  
+            "API Title"  
+        ],  
+        "version": [  
+            "1.0.0"  
+        ]  
+},  
+    "paths": {  
+        "/mountPath_1/myPlot": {  
+            "get": {  
+                "summary": [  
+                    null  
+                ],  
+                "description": [  
+                    null  
+                ],  
+...
+```
+
+We can now use this file to add documentation to our API. For example, we could change it this:
+
+```{r, eval=FALSE}
+{  
+    "openapi": [  
+        "3.0.3"  
+    ],  
+    "info": {  
+        "description": [  
+            "Dummy API to demonstrate how to use programmatic plumber"          
+			  ],  
+        "title": [  
+            "Programmatic plumber API"  
+        ],  
+        "version": [  
+            "0.0.1"  
+        ]  
+},  
+    "paths": {  
+        "/mountPath_1/myPlot": {  
+            "get": {  
+                "summary": [  
+                    "Summary for myPlot endpoint"  
+                ],  
+                "description": [  
+                    "Description for myPlot endpoint"  
+                ],  
+...
+```
+
+
+In order to use the JSON file, we add the method `pr_set_api_spec` to the root router:
+
+```{r, eval=FALSE}
+root %>%  
+  pr_set_api_spec(jsonlite::fromJSON(here::here("specs", "openapi.JSON"))) %>%  
+  pr_mount('/mountPath_1', plots) %>%  
+  pr_mount("/mountPath_2", randLetters)  
+ %>%  pr_run()
+```
+
+### Conclusion
+
+And that's a wrap on the second installment of our series on the programmatic `{plumber}`.
+
+We've delved into the usage of `pr_set_404` and `pr_set_error` for error handling, as well as `pr_set_docs` and `pr_set_api_sepc` for tailoring the appearance of the API.
+
+In our next piece, we're going to unlock the true potential of programmatic plumber by examining filters and hooks.
+
+### Resources
+
+* [Programmatic plumber documentation](https://www.rplumber.io/articles/programmatic-usage.html)
