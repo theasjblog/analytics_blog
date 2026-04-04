@@ -2,7 +2,7 @@
 title: "S3, S4, RC, R6. Object oriented in R - Part 2"
 description: "RC and R6 objects."
 date: "2022-09-20"
-categories: [r, oop]
+categories: [r, software-design]
 ---
 ![](img/cover.png)
 

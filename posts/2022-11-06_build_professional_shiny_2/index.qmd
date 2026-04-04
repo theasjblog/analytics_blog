@@ -2,7 +2,7 @@
 title: "How to build a professional R Shiny app - part 2"
 description: "In part 1 we look at what to do before we get coding. In this part 2 we will look at setting up the Shiny app and using modules."
 date: "2022-11-06"
-categories: [r, rshiny]
+categories: [app-development, software-design]
 ---
 ![Photo by Agence Olloweb on Unsplash](img/cover.jpg)
 
@@ -253,8 +253,6 @@ In the next article we will look at how we can test the app.
 
 * The best guide on building Shiny apps: [Engineering Shiny](https://engineering-shiny.org/).
 * The [first article](/posts/2022-10-16_build_professional_shiny_1/index.html) of the series.
-
-
 
 
 

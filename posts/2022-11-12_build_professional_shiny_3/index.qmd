@@ -2,7 +2,7 @@
 title: "How to build a professional R Shiny app - part 3"
 description: "In part 1 we planned a Shiny app. In part 2 we developed it. In part 3 we start to test it."
 date: "2022-11-12"
-categories: [r, rshiny]
+categories: [app-development, testing]
 ---
 ![Photo by Agence Olloweb on Unsplash](img/cover.jpg)
 Before you continue reading, make sure you are familiar with [part 1](/posts/2022-10-16_build_professional_shiny_1/index.html) and [part 2](/posts/2022-11-06_build_professional_shiny_2/index.html).

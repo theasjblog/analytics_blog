@@ -2,8 +2,15 @@
 title: "Speed up Shiny with cache"
 description: "Use renderCachedPlot, bindCache, and memoise to avoid repeating expensive work."
 date: "2025-01-03"
-categories: [r, shiny]
+categories: [app-development, performance]
+image: img/cover.png
 ---
+
+![](img/cover.png)
+
+***This article is heavily inspired by a similar article published by the good people at Appsilon. I cannot find it anymore, but if you can I strongly recommend you read that too, and subscribe to their news feed. It is truly excellent.***
+
+
 
 Shiny reactivity is great, but it can easily become expensive. Sometimes we ask the app to repeat the same costly work again and again just because a user toggled back to a state the app has already seen before.
 

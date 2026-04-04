@@ -2,7 +2,7 @@
 title: "Set-up R for success"
 description: "How to start working on an R project the smart way by laying rock solid foundations."
 date: "2022-07-13"
-categories: [r, setup]
+categories: [r, productivity, software-design]
 ---
 ![Etienne Girardet, Unsplah](img/cover.jpg)
 
@@ -145,4 +145,3 @@ Personally, I recommend you follow the testthat framework and store all your uni
 ## Conclusions
 
 As we saw, setting up a clean R project can be quick and easy. Yes, you might need to make some initial investment to learn new tools and libraries, but trust me, it is an investment with an extremely high return, not only in terms of the amount of work efficiency, but you will also be a lot more desirable in the job market: R users that are good developers as well as good statisticians are rarer than you might think, and highly desirable.
-

@@ -2,7 +2,7 @@
 title: "Essential Shiny libraries"
 description: "Step up you Shiny game with these libraries."
 date: "2023-06-08"
-categories: ["r, shiny"]
+categories: [app-development, productivity]
 ---
 ![Photo by Adrien WIESENBACH on Unsplash.](./img/cover.jpg)
 

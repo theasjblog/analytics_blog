@@ -2,7 +2,7 @@
 title: "R and Python vetiver package: a suitable MLOps solution?"
 description: "Should you use vetiver as a free, open source MLOps solution?"
 date: "2023-03-16"
-categories: [coding]
+categories: [mlops]
 ---
 ![Photo by Scott Graham on Unsplash.](img/cover.jpg)
 
@@ -136,4 +136,3 @@ What is your experience with `{vetiver}`? Is your organization using it as an ML
 
 * [`{vetiver}` home](https://vetiver.rstudio.com/)
 * [`{vetiver}` user guide on Posit](https://docs.posit.co/connect/user/vetiver/)
-

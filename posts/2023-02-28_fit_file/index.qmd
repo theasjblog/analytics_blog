@@ -2,7 +2,7 @@
 title: "Read FIT files in R. A story on why you should not reinvent the wheel"
 description: "How to deal with FIT files on R, and a lesson on choosing the best tool for the job."
 date: "2023-02-28"
-categories: [coding]
+categories: [r, software-design]
 ---
 ![Photo by Ashley de Lotz on Unsplash.](img/cover.jpg)
 

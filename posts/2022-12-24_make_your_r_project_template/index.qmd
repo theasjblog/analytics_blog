@@ -2,7 +2,7 @@
 title: "Make your own RStudio project template"
 description: "How to make sure everyone on your team is using the same blueprint."
 date: "2022-12-24"
-categories: [r, rstudio]
+categories: [devtools, productivity]
 ---
 ![A custom RStudio project template. Image by the author.](img/cover.png)
 
@@ -231,4 +231,3 @@ Thanks for reading, and remember to follow me to get notified on new stories.
 * [Older medium article on the subject](https://medium.com/towards-data-science/using-rstudio-project-templates-to-help-the-project-standardization-in-data-science-teams-a963db12abac).
 * [Templates documentation](https://rstudio.github.io/rstudio-extensions/rstudio_project_templates.html).
 * [Repository for this project](https://github.com/theasjblog/rstudiotemplate).
-

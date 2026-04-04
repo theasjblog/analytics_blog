@@ -2,7 +2,7 @@
 title: "How to log in R plumber REST API"
 description: "Use hooks to simplify logging in plumber."
 date: "2024-01-10"
-categories: ["r"]
+categories: [api, devtools]
 image: https://cdn-images-1.medium.com/max/800/1*0AgifxUos6-gb1utrHOLiQ.png
 ---
 ![Image generated with Canva Magic Media.](https://cdn-images-1.medium.com/max/800/1*0AgifxUos6-gb1utrHOLiQ.png)

@@ -2,7 +2,7 @@
 title: "S3, S4, RC, R6. Object oriented in R - Part 1"
 description: "Introduction to object oriented in R, S3 and S4 objects."
 date: "2022-09-12"
-categories: [r, oop]
+categories: [r, software-design]
 ---
 ![](img/cover.png)
 
@@ -555,4 +555,3 @@ S4 is based on the same idea as S3. They are both functional OO systems, and the
 S4 added formality might sound great, but you should evaluate carefully if it is worth it. It is often preferable to use the simpler and more R-friendly S3. This is because of better documentation and improved code readability by traditional R developers.
 
 Follow me and subscribe to get notified when part 2 of this series is published, and for other tips on R programming.
-

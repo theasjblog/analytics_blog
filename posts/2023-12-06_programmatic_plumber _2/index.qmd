@@ -2,7 +2,7 @@
 title: "Programmatic plumber - Part 1: error handling and documentation"
 description: "eturn meaning errors and document your API."
 date: "2023-12-06"
-categories: ["r", "plumber"]
+categories: [api]
 ---
 ![Image generated with Canva AI Magic Media.](img/cover.png)
 

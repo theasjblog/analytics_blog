@@ -2,7 +2,7 @@
 title: "Programmatic plumber - Part 1: the basics"
 description: "How to unlock the power of plumber API."
 date: "2023-11-22"
-categories: ["r", "plumber"]
+categories: [api]
 ---
 ![Image generated with Canva AI Magic Media.](img/cover.png)
 

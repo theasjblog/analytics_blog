@@ -2,7 +2,7 @@
 title: "James Clear’s Atomic Habits for software developers and managers"
 description: "Use the Atomic Habits method to adopt best software engineering practices and to improve your team’s work quality."
 date: "2023-03-10"
-categories: ["general"]
+categories: [productivity, software-design]
 ---
 ![Photo by Nubelson Fernandes on Unsplash.](./img/cover.jpg)
 

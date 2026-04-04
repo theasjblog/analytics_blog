@@ -2,7 +2,7 @@
 title: "Frosty The Snowman. In R!"
 description: "Make your own Frosty The Snowman in R!"
 date: "2022-12-07"
-categories: [r]
+categories: [r, productivity]
 ---
 ![Frosty the snowman.](img/cover.png)
 

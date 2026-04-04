@@ -2,7 +2,7 @@
 title: "An introduction to logging with examples in R"
 description: "Fundamental rules to define a logging strategy."
 date: "2023-05-17"
-categories: ["r"]
+categories: [devtools]
 ---
 ![Photo by Ibrahim Boran Unsplash.](./img/cover.jpg)
 
@@ -235,4 +235,3 @@ Finally, as a general rule of thumb, remember that technical logs should be moni
 In this article we saw why logs are important. We then looked at a few general tips to deal with logs, and we used R to provide examples.
 
 If there is one single takeaway I’d like you to remember, is that logs are so fundamental to the health of an applications, that they should be planned and executed with the same care and effort you put into every other aspect of the tool you are building. Talk with all the stakeholder to determine what information they need, find out how your organization consumes logs, and try to plug into those solutions rather than reinventing the wheel.
-

@@ -2,7 +2,7 @@
 title: "Introduction to debugging R with RStudio"
 description: "How to find the cause of errors in your R code."
 date: "2023-09-13"
-categories: [r, debug]
+categories: [r, devtools]
 ---
 ![Image by the author.](img/cover.png)
 

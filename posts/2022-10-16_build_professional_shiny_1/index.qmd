@@ -2,7 +2,7 @@
 title: "How to build a professional R Shiny app - part 1"
 description: "Shiny apps are easy to build, but often they are designed and implemented poorly. Keep reading to learn how to make professional-grade Shiny apps."
 date: "2022-10-16"
-categories: [r, rshiny]
+categories: [app-development, software-design]
 ---
 ![Photo by Agence Olloweb on Unsplash](img/cover.jpg)
 

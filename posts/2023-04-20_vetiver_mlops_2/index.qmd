@@ -2,7 +2,7 @@
 title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 2"
 description: "The deployment pipeline."
 date: "2023-04-20"
-categories: ["mlops"]
+categories: [mlops]
 ---
 ![Image by the author.](./img/cover.png)
 

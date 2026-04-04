@@ -2,7 +2,7 @@
 title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 4"
 description: "The project retrspective. Was vetiver a good choice?"
 date: "2023-05-05"
-categories: ["mlops"]
+categories: [mlops]
 ---
 ![Image by the author.](./img/cover.png)
 

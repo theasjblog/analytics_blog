@@ -1,5 +1,6 @@
 ---
-title: "![ASJ Analytics & Software](/img/logo.png){width=\"200\"}"
+title: "ASJ analytics and software"
+body-classes: home-page
 
 listing:
   contents: posts
@@ -14,4 +15,18 @@ feed: true
 
 ---
 
+::: {.home-hero}
+::: {.home-kicker}
+Independent writing on analytics and software
+:::
 
+## Build analytics systems that are useful, maintainable, and clear
+
+This blog collects practical notes on analytics engineering, R, Shiny, APIs, and MLOps. The focus is not on theory for its own sake. It is on the work that makes technical systems easier to operate, explain, and improve.
+
+I write from the perspective of someone building real tools, debugging real workflows, and trying to make software decisions that hold up beyond the first release.
+
+[Read more about me](about.qmd){.hero-link}
+:::
+
+## Recent writing

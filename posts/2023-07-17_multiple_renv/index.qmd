@@ -2,7 +2,7 @@
 title: "Multiple renv virtual environment in R"
 description: "How to easily switch between different renv libraires within the same project."
 date: "2023-07-17"
-categories: ["r, renv"]
+categories: [devtools]
 ---
 ![Photo by Luisa Brimble on Unsplash.](./img/cover.jpg)
 

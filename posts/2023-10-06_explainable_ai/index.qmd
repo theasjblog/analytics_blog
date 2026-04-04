@@ -2,7 +2,7 @@
 title: "A case study on explainable AI"
 description: "The importance of explaining model outputs."
 date: "2023-10-06"
-categories: [ai]
+categories: [mlops]
 ---
 ![Image generated with Canva AI Magic Media.](img/cover.png)
 

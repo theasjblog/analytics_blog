@@ -2,7 +2,7 @@
 title: "Everything you want to know about the R apply functions"
 description: "Use cases, examples, benchmarking."
 date: "2022-08-21"
-categories: [r, apply]
+categories: [r, performance]
 ---
 ![](img/cover.png)
 

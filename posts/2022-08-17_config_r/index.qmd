@@ -2,7 +2,7 @@
 title: "How to manage your R configuration like a pro with config"
 description: "A deep dive into the powerful R package config."
 date: "2022-08-17"
-categories: [r, setup, config]
+categories: [devtools]
 ---
 ![Photo by Elena Popova on Unsplash](img/cover.jpg)
 

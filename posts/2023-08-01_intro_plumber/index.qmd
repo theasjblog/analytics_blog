@@ -2,7 +2,7 @@
 title: "Introduction to engineering R plumber API"
 description: "General guidelines on how to organize your R plumber API."
 date: "2023-08-01"
-categories: [r, plumber]
+categories: [api]
 ---
 ![Photo by Sigmund on Unsplash](img/cover.jpg)
 

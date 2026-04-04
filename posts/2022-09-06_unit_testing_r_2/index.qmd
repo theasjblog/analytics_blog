@@ -2,7 +2,7 @@
 title: "Everything you want to know about unit testing in R - Part 2"
 description: "Your survival guide to unit testing, test fixtures, mocking, and coverage in R."
 date: "2022-09-06"
-categories: [r, testthat, testing]
+categories: [testing]
 ---
 ![](img/cover.png)
 
@@ -190,4 +190,3 @@ In this mini series on unit testing in R we saw how we can test our R code in a 
 * quantify test coverage: use `covr`.
 
 Hopefully you are now able to test your code and demonstrate to yourself and other people that it works. Or that at least it does not fail.
-

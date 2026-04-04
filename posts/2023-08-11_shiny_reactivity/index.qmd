@@ -2,7 +2,7 @@
 title: "Shiny reactivity visualizer"
 description: "Optimize your Shiny apps by understanding the reactivity graph."
 date: "2023-08-11"
-categories: [r, shiny]
+categories: [app-development]
 ---
 ![Photo by Valery Fedotov on Unsplash](img/cover.jpg)
 

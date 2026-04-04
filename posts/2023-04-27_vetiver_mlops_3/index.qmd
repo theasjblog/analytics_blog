@@ -2,7 +2,7 @@
 title: "Build an end-to-end MLOps solution with vetiver for R and Python - Part 3"
 description: "The feedback loop: monitoring."
 date: "2023-04-27"
-categories: ["mlops"]
+categories: [mlops]
 ---
 ![Image by the author.](./img/cover.png)
 

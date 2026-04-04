@@ -2,7 +2,7 @@
 title: "Programmatic plumber - Part 3: filters and hooks"
 description: "Modify the routing of your plumber API."
 date: "2023-12-20"
-categories: ["r", "plumber"]
+categories: [api]
 image: https://cdn-images-1.medium.com/max/800/1*QNtU4mz_C46PWxa4E2EDGA.png
 ---
 ![Image generated with Canva AI Magic Media.](https://cdn-images-1.medium.com/max/800/1*QNtU4mz_C46PWxa4E2EDGA.png)

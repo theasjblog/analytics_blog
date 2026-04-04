@@ -2,7 +2,7 @@
 title: "Vetiver for MLOps: An Updated Perspective and Cautionary Note"
 description: "A review of my vetiver for MLOps article series."
 date: "2024-01-24"
-categories: ["mlops"]
+categories: [mlops]
 image: https://cdn-images-1.medium.com/max/800/1*OEWOPNWC8vt5G0TJjnaWww.jpeg
 ---
 ![Image by the author.](https://cdn-images-1.medium.com/max/800/1*OEWOPNWC8vt5G0TJjnaWww.jpeg)

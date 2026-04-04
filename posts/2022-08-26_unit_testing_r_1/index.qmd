@@ -2,7 +2,7 @@
 title: "Everything you want to know about unit testing in R - Part 1"
 description: "Your survival guide to unit testing, test fixtures, mocking, and coverage in R."
 date: "2022-08-26"
-categories: [r, tetthat, testing]
+categories: [testing]
 ---
 ![](img/cover.png)
 
@@ -173,5 +173,3 @@ It is easy to get carried away with helper functions. In my experience, if you n
 # Wrap up
 
 This is it for this first part. I will explore mocking and test coverage on [part 2](/posts/2022-09-06_unit_testing_r_2/index.html).
-
-

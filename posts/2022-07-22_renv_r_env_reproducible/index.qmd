@@ -2,7 +2,7 @@
 title: "renv: make R environment reproducible"
 description: "How to manage R dependencies and how to make sure that your code will keep working for as long as it needs to."
 date: "2022-07-22"
-categories: [r, setup, renv]
+categories: [devtools]
 ---
 ![Photo by NOAA on Unsplash](img/cover.jpg)
 
@@ -121,4 +121,3 @@ The final piece of the `renv` mechanism is the `renv::restore()`. This is the co
 ## Conclusions
 
 In this article we saw how important it is to protect your code against changes to its dependencies and to specify exactly what your code needs to run when you share your work, or even when you re-install it into a different machine. The tool of choice to do so in R is `renv`. `renv` is very simple to use and under normal operation it only requires three commands: activate, snapshot, and restore.
-

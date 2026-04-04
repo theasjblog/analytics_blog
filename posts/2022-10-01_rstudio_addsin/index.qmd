@@ -2,7 +2,7 @@
 title: "RStudio addins to streamline your workflow"
 description: "RStudio addins can make your R work faster and easier. Here is a list of my favourite addins."
 date: "2022-10-01"
-categories: [r, rstudio]
+categories: [productivity, devtools]
 ---
 ![Photo by Markus Winkler on Unsplash](img/cover.jpg)
 

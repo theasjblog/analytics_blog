@@ -2,7 +2,7 @@
 title: "Make any R code faster with this parallelization trick"
 description: "A handy R trick to run in parallel different workflows."
 date: "2023-01-14"
-categories: [r]
+categories: [r, performance]
 ---
 ![Photo by Bernd Dittrich on Unsplash.](img/cover.jpg)
 # What will you learn?
@@ -142,4 +142,3 @@ Before parallelizing, focus on optimizing your code through good design. For mor
 I hope this trick is helpful! Let me know if you use different approaches to solve this problem.
 
 Thanks for reading!
-

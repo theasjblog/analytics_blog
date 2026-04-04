@@ -2,7 +2,7 @@
 title: "Which R Shiny framework is the best? A comparison of vanilla Shiny, golem, rhino, and leprechaun"
 description: "There is no single way to develop a shiny app. But is there a “best” way? Here are my thoughts on some common shiny frameworks."
 date: "2023-01-21"
-categories: [r, rshiny]
+categories: [app-development, software-design]
 ---
 ![Photo by Robert Anasch on Unsplash.](img/cover.jpg)
 A while ago, I wrote a [series of posts](../2022-10-16_build_professional_shiny_1/index.qmd) about writing a professional Shiny app. In those articles, I recommended the `{golem}` framework over vanilla Shiny. I did that knowing that other frameworks exist, but I had no experience using them, so I could not recommend them.
@@ -125,4 +125,3 @@ Personally, I am transitioning from `{golem}` to `{rhino}` but still recommend `
 - [Golem](https://github.com/ThinkR-open/golem)
 - [Rhino](https://appsilon.github.io/rhino/index.html)
 - [Leprechaun](https://leprechaun.opifex.org/#/)
-

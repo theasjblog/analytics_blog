@@ -2,7 +2,7 @@
 title: "Improve your R workflow with these must have R packages"
 description: "R has countless packages. This is a collection of the ones I found to be the most useful for data scientists and software developers alike."
 date: "2022-08-21"
-categories: [r, r packages]
+categories: [r, productivity]
 ---
 ![](img/cover.png)
 
