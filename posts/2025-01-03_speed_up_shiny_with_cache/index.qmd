@@ -1,0 +1,313 @@
+---
+title: "Speed up Shiny with cache"
+description: "Use renderCachedPlot, bindCache, and memoise to avoid repeating expensive work."
+date: "2025-01-03"
+categories: [r, shiny]
+---
+
+Shiny reactivity is great, but it can easily become expensive. Sometimes we ask the app to repeat the same costly work again and again just because a user toggled back to a state the app has already seen before.
+
+This is frustrating for users. If a plot or calculation was already produced once, waiting several seconds for the exact same result a second time is wasted time.
+
+In this post, we will look at three practical caching patterns for Shiny:
+
+- `renderCachedPlot()` for plots
+- `bindCache()` for reactive expressions and non-plot outputs
+- `memoise` for expensive function calls
+
+These tools solve slightly different problems, but the general idea is the same: compute once, reuse many times.
+
+## Caching plots with `renderCachedPlot()`
+
+Let us start with a simple app that draws a scatter plot with 100,000 points and lets the user change the point colour.
+
+```
+library(shiny)
+library(ggplot2)
+
+myData <- data.frame(x = rnorm(1e5), y = rnorm(1e5))
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons(
+        "plotColour",
+        "Color for points",
+        choices = c("red", "black", "blue"),
+        selected = "red"
+      )
+    ),
+    mainPanel(
+      plotOutput("plot")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    ggplot(myData, aes(x, y)) +
+      geom_point(colour = input$plotColour)
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+This app works, but rendering that many points is expensive. If the user switches from red to blue and then back to red, the app recreates the red plot from scratch even though it has already done that work before.
+
+The fix is to cache the rendered plot.
+
+```
+library(shiny)
+library(ggplot2)
+
+shinyOptions(cache = cachem::cache_disk("./myapp-cache"))
+
+myData <- data.frame(x = rnorm(1e5), y = rnorm(1e5))
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons(
+        "plotColour",
+        "Color for points",
+        choices = c("red", "black", "blue"),
+        selected = "red"
+      )
+    ),
+    mainPanel(
+      plotOutput("plot")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  output$plot <- renderCachedPlot({
+    ggplot(myData, aes(x, y)) +
+      geom_point(colour = input$plotColour)
+  },
+  cacheKeyExpr = {
+    list(input$plotColour)
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Here is what changed:
+
+- We specify where the cache should live with `shinyOptions(cache = cachem::cache_disk(...))`.
+- We replace `renderPlot()` with `renderCachedPlot()`.
+- We define `cacheKeyExpr`, which tells Shiny what makes one rendered plot different from another.
+
+In this example, the cache key depends only on `input$plotColour`, because that is the only thing that changes the plot output.
+
+The first time a given colour is requested, Shiny renders the plot normally and saves it to the cache. The next time the same colour is requested, Shiny can reuse the cached version instead of recreating the plot.
+
+This approach works best when:
+
+- The plot is genuinely expensive to render.
+- The number of possible plot states is limited.
+- The underlying data is reasonably stable.
+
+## Caching reactive outputs with `bindCache()`
+
+`renderCachedPlot()` is specific to plots. What if the expensive work is not a plot at all?
+
+Consider this app:
+
+```
+library(shiny)
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "y", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  r <- reactive({
+    Sys.sleep(2)
+    2 * as.numeric(input$x)
+  })
+
+  output$txt <- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+The calculation itself is trivial, but `Sys.sleep(2)` simulates an expensive operation. Each time the user changes the input, the app waits two seconds. If they return to a previous selection, it still waits.
+
+For non-plot outputs, `bindCache()` is often the right solution.
+
+```
+library(shiny)
+library(magrittr)
+
+shinyOptions(cache = cachem::cache_disk("./myapp-bindcache"))
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "y", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  r <- reactive({
+    Sys.sleep(2)
+    2 * as.numeric(input$x)
+  }) %>%
+    bindCache(input$x)
+
+  output$txt <- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+What changed:
+
+- We configured a cache location with `shinyOptions()`.
+- We added `bindCache(input$x)` to the reactive expression.
+
+`bindCache()` uses its arguments to build the cache key. In this case, the result depends only on `input$x`, so that is all we need.
+
+The behavior is straightforward:
+
+- The first time a value is requested, the reactive computes normally.
+- Later requests for the same value can be served from cache.
+
+This is useful whenever you want caching for outputs that are not `ggplot2` graphics, including text, tables, and intermediate reactive results.
+
+## Caching function results with `memoise`
+
+There is another common case: the expensive work lives inside a normal R function. In that situation, `memoise` can be a better fit.
+
+Start with this example:
+
+```
+library(shiny)
+
+double_x <- function(x) {
+  Sys.sleep(2)
+  x * 2
+}
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "x", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  r <- reactive({
+    double_x(as.numeric(input$x))
+  })
+
+  output$txt <- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Again, the app repeats the same expensive work every time.
+
+Now wrap the function with `memoise`.
+
+```
+library(shiny)
+library(memoise)
+
+cd <- cache_filesystem("./myapp-memoise")
+
+double_x <- function(x) {
+  Sys.sleep(2)
+  x * 2
+}
+
+mmn <- memoise(double_x, cache = cd)
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "x", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  r <- reactive({
+    mmn(as.numeric(input$x))
+  })
+
+  output$txt <- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+The changes are:
+
+- We define a filesystem cache with `cache_filesystem()`.
+- We wrap the expensive function with `memoise()`.
+- The app calls the memoised version instead of the original function.
+
+If `mmn(3)` has already been computed once, the cached result can be returned the next time `mmn(3)` is called.
+
+This pattern is especially useful when expensive logic is already encapsulated in functions. It also generalizes beyond Shiny, which is one of the reasons `memoise` is so handy.
+
+One practical tip: Shiny modules are functions too. If module initialization or internal setup is expensive, `memoise` can sometimes help there as well.
+
+## Which caching tool should you use?
+
+Use the tool that matches the level where the expensive work happens:
+
+- Use `renderCachedPlot()` when the expensive output is a plot.
+- Use `bindCache()` when the expensive work sits inside a reactive expression or other Shiny output pipeline.
+- Use `memoise` when the expensive work is encapsulated in a regular R function.
+
+These tools are complementary, not competing.
+
+## Final note
+
+Caching is powerful, but it is not a substitute for good Shiny engineering.
+
+Whenever possible:
+
+- Serve data that is already prepared.
+- Avoid unnecessary on-the-fly computation.
+- Keep the cache key limited to the inputs that truly affect the result.
+- Be careful with rapidly changing data, because stale cache can become a correctness problem.
+
+Used well, caching can make a Shiny app feel dramatically faster without changing the user-facing behavior at all.

@@ -1,0 +1,200 @@
+---
+title: "How to log in R plumber REST API"
+description: "Use hooks to simplify logging in plumber."
+date: "2024-01-10"
+categories: ["r"]
+image: https://cdn-images-1.medium.com/max/800/1*0AgifxUos6-gb1utrHOLiQ.png
+---
+![Image generated with Canva Magic Media.](https://cdn-images-1.medium.com/max/800/1*0AgifxUos6-gb1utrHOLiQ.png)
+
+In previous articles, I introduced [logging for R](https://medium.com/@adrian.joseph/an-introduction-to-logging-with-examples-in-r-18874e128db2) and provided an [overview of the plumber package](https://medium.com/@adrian.joseph/introduction-to-engineering-r-plumber-api-fa1cad276b7c), an R library for building REST APIs. I also demonstrated how to use [programmatic plumber](../2023-11-22_programmatic_plumber_1/index.qmd) to access extra features of the plumber library.
+
+In this article, we will delve deeper into plumber and examine a more realistic API. We will focus on creating logs from a plumber API without cluttering the code with calls to `print` or other logging functions.
+
+### Types of Logs
+
+In data analytics, logs serve two general purposes:
+
+- Application debugging
+- KPI monitoring
+
+We will create an API that logs both these events.
+
+### Saving Logs in Plumber
+
+When saving logs, we have several options:
+
+- `print` statements: This rudimentary form of logs is acceptable if your application runs on something like an `rsconnect` server, which captures console output and stores it in its log stash. However, this approach often leads inexperienced developers to litter the code base with `print` statements.
+- Custom write to file, for example with `writeLines()`. I discourage this solution as it typically involves writing extensive code to format and handle the logs, increasing maintenance costs.
+- Logging frameworks: These recommended solutions can easily manage any logging request, handle formatting, and log to console and or file. In this article, we will save logs to file using the `log4r` package, but other frameworks like `logger` will also work. Note that logging frameworks can also print to the console, acting as a more powerful `print` statement. In any case, we must avoid cluttering our code with calls to the logging framework. Ideally, logging is part of the plumber API logic and should not intrude on the business logic.
+
+With logging methods established, we must decide where to insert logging code into the API. We have two main options:
+
+- `filters`: These modify the routing of a request in plumber. They intercept an incoming request, perform checks or operations, and then direct the request to other filters or the main endpoint. Filters are not ideal for saving logs.
+- `hooks`: At first glance, hooks resemble filters, but they allow more precise control over the routing. Hooks can intercept a request at different stages, making them a better choice for dealing with logs than filters.
+
+### Logging with Filters
+
+If we use filters for logging, we need to follow this pattern:
+
+- Define the filter log object in a filter and attach it to the request.
+- Use the logging object.
+
+```
+#' @title addLogs
+#' @description This is the logic of a filter. It adds a log4r object to the
+#' request. In this example we simply print to console, but of course
+#' you can use the file_appender to also write to file.
+#' You can also create different loggers to save to different files
+#' if you want to separate debug messages from KPI metrics.
+addLogs <- function(req, res) {
+  req$logger_debug <- logger(
+    "DEBUG",
+    appenders = list(console_appender())
+  )
+  plumber::forward()
+}
+```
+
+Unfortunately, this approach leads to code clutter with statements like:
+
+```
+if (errorConditionDetected) {
+  error(req$logger_debug, "log message")
+  stop("log message")
+}
+```
+
+for logging errors, and:
+
+```
+info(req$logger_debug, "log message")
+```
+
+for logging other events. This is no better than scattering `print` statements throughout the code base. The only improvement is prettier log prints due to `log4r`.
+
+### Logging with Hooks
+
+Instead, we will use hooks for logging. We will define a simple API with three endpoints: `ping`, `metadata`, and `mtcarsRows`.
+
+In the API setup, we prepare for logging by ensuring the folders where logs will be created already exist.
+
+```
+# set up ------------------------------------------------------------------
+library(plumber)
+library(jsonlite)
+library(log4r)
+library(here)
+library(sessioninfo)
+lapply(list.files(here::here("R"), full.names = TRUE), source)
+
+# log folders -------------------------------------------------------------
+logPaths <- c(here::here("logs", "debug"))
+lapply(logPaths, function(d) {
+  if (!dir.exists(d)) {
+    dir.create(d, recursive = TRUE)
+  }
+})
+
+# plumber API object ------------------------------------------------------
+pr_api <- pr() %>%
+  pr_get(
+    "/ping",
+    handler = function() {},
+    serializer = serializer_json()
+  ) %>%
+  pr_get(
+    "/metadata",
+    handler = function() {
+      sessioninfo::session_info()
+    },
+    serializer = serializer_json()
+  ) %>%
+  pr_post(
+    "mtcarsRows",
+    handler = mtcarsRows,
+    serializer = serializer_json()
+  )
+```
+
+The `mtcarsRows` endpoint logic is straightforward:
+
+```
+#' @title mtcarsRows
+#' @description API main endpoint
+#' @param req API request, with a JSON req$postBody = {"n": <x>}
+#' where x is an integer
+#' @return <x> rows of the mtcars dataframe
+mtcarsRows <- function(req) {
+  n <- jsonlite::fromJSON(req$postBody)
+  if (!is.numeric(n$n)) {
+    stop("n must be numeric")
+  }
+  head(mtcars, n$n)
+}
+```
+
+Please note that `requestBody` should typically be validated in a filter. However, for simplicity, I have added some validation to the endpoint in this example.
+
+With a basic API, we can use hooks to add filters. Upstream hooks like `preroute` can be used to create logging objects, while downstream routes such as `postserialize` can be used to capture response and errors and log them.
+
+```
+pr_api %>%
+  pr_hooks(
+    list(
+      preroute = function(req) {
+        # add some metadata to the request. Will be used to enrich the logs
+        req$startTime <- Sys.time()
+        req$sessionID <- paste0(sample(LETTERS, 5), collapse = "")
+
+        # create the log4r object and add it to the request
+        req$logger_debug <- logger(
+          "DEBUG",
+          appenders = list(
+            file_appender(file = here::here("logs", "debug", "sample.log")),
+            console_appender()
+          )
+        )
+        req
+      },
+      postserialize = function(req, res) {
+        # do not log for plumber's own endpoints
+        if (!req$PATH_INFO %in% c("/", "/openapi.json")) {
+          logInfo <- list(
+            session_id = req$sessionID,
+            time_stamp = req$startTime,
+            endpoint = req$PATH_INFO,
+            response_code = res$status
+          )
+
+          if (req$PATH_INFO == "/mtcarsRows") {
+            logInfo$request_body <- req$postBody
+            logInfo$response_body <- res$body
+          }
+
+          info(req$logger_debug, jsonlite::toJSON(logInfo))
+        }
+      }
+    )
+  ) %>%
+  pr_run()
+```
+
+With that, we are done. There is no need for multiple log statements within the `mtcarsRows` function logic, though we could add them if we wanted, for instance, to add information about specific processing steps in larger APIs. The hooks capture everything we need.
+
+In the interest of good coding practices, you should not write the logic of the hook functions directly in the API code. Instead, create separate functions stored in an R file, such as `preroute_hook` and `postserializer_hook`, and rewrite the code as follows:
+
+```
+pr_api %>%
+  pr_hooks(list(
+    preroute = preroute_hook,
+    postserialize = postserialize_hook
+  )) %>%
+  pr_run()
+```
+
+This way, your `entrypoint.R` file will be cleaner and smaller, and your hook functions will be testable, making for more effective and maintainable APIs.
+
+### Conclusion
+
+This article demonstrated the importance of logging in plumber APIs. We examined different methods of logging and identified hooks as the most effective approach. By using hooks, we can avoid code clutter, maintain readability, and ensure the capture of all necessary log information. This enhances debugging and allows for efficient KPI monitoring.

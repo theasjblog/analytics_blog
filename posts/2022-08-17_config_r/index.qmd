@@ -1,0 +1,339 @@
+---
+title: "How to manage your R configuration like a pro with config"
+description: "A deep dive into the powerful R package config."
+date: "2022-08-17"
+categories: [r, setup, config]
+---
+![Photo by Elena Popova on Unsplash](img/cover.jpg)
+
+If you are a developer you probably have to manage different configurations in different environments like dev, test, or prod. If you are a data analyst you might want to be able to quickly change some parameters or thresholds depending on specific conditions to compare different solutions.
+
+These scenarios describe the same problem: the configuration problem. Managing configurations is important. The wrong approach will cost you hours trying to make a same simple change to your code.
+
+When you deal with a configuration problem, you deal with two issues:
+
+1. How to allow variables to assume different values depending on the runtime environment: dev, test, prod, or whatever you use.
+2. How to allow quick changes to the value of those variables.
+
+There is another consideration to make to consider if you want to professionally manage your configuration. Your solution should be R-independent. You should be able to import and export configurations between systems.
+
+I have seen several approaches to the configuration problem. Let’s quickly look at them.
+
+# Configuration management options
+
+## Hard coded values
+
+This is the basic approach. The global variables are not even variables. They are hardcoded wherever they are needed. To change them you have to search the entire code base. This is a nightmare at best. Don’t do this. This approach does not solve any of the configuration issues. If anything, it creates more problems.
+
+## In-code flags
+
+In-code flags look something like this:
+
+```{r, eval=FALSE}
+#if/else option
+if (runEnv == "prod"){
+  varVal <- 1
+} else if(runEnv == "dev"){
+  varVal <- 2
+} else {
+  varVal <-3
+}
+
+# switch option
+varVal <- switch(runEnv,
+                 "prod" = 1,
+                 "dev" = 2,
+                 3
+)
+```
+
+In-code flags are a great deployment pattern tool, but this is not when they should be used. Using in-code flags to manage the configuration is just marginally better than hardcoding the values. They solve the problem of having different values for different environments, but they do not allow you to quickly change said values. Also, imagine somebody decides to change the name prod to production. Not fun…
+
+## Variables assigned on top of files or functions
+
+This is a marginal improvement to the hardcoded values. When combined with in-code flags they allow you to have different configurations for different environments. Yet, you still need to know the code base fairly well to find all of them. Still not good enough.
+
+## Variables saved in a config.R file
+
+This is another small improvement. All the variables are in one place, so they are easy to find. If you combine this with in-code flags, you have different configurations for different environments. The limitation is that this solution is not easily accessible by other systems: you are using an R file that only R can easily read properly. Furthermore, you cannot easily integrate configurations used by other systems.
+
+## Variables saved in a .Renviron file
+
+This is bad. .Renviron should be reserved for secrets (passwords, tokens, etc), and not committed to the repository. And if you do not commit the file to the repository, how can other developers have access to the global variables?
+
+## Variables saved in a .Rprofile file
+
+This is better than the .Renviron. Your limitation is the same as the one for the config.R file: this is an R-specific solution therefore it cannot be integrated with other systems.
+
+# The config package
+
+So, how can you properly manage your configuration in R? The answer is the R package `config`.
+
+`config` allows us to set our variables in a config file, and change them at run time by simply leveraging the global variable `R_CONFIG_ACTIVE`.
+
+Let’s have a look at what this package can do.
+
+## The config ingredients
+
+To use config we need two ingredients:
+
+1. A global variable called `R_CONFIG_ACTIVE` storing the name of the environment we are using.
+2. A `config.yml` file.
+
+R_CONFIG_ACTIVE is normally set by the system administrator (for example if you use Posit Connect in an enterprise). You can also set it manually, but you need to make sure it is done transparently, so other developers know what they need to do, and if your work targets different environments (test, production) you need to make sure that R_CONFIG_ACTIVE is set up correctly.
+
+Next, you need the config.yml file. This file follows the standard yml syntax. The fact that it is a standard format is the strength of the config package. The package can read yml files created by other systems, and other systems can read R’s yml files.
+
+Below is an example of a simple config.yml file for a production environment.
+
+```yaml
+default:
+  runParallel: FALSE
+  nRuns: 10
+production:
+  runParallel: TRUE
+  nRuns: 100
+
+```
+
+In this particular example, we handle one specific environment: production. For production (`R_CONFIG_ACTIVE == "production"`) we use the bottom configuration: `runParallel: TRUE` and `nRuns:100`. In any other environment (`R_CONFIG_ACTIVE != "production"`) we use the `defualt` configuration. We will see more examples later.
+
+A few of important things on the yml file:
+
+* You need to have an empty line at the end of the file.
+* You need to have the default configuration. This is the fallback in case the environment is not specified.
+* There must be a space between <key>: and <key value>.
+
+By default, the config.yml file is named config.yml and it is stored in the project’s root folder. However, we can override these defaults.
+
+## Using the config package
+
+### The get function
+
+The `get` function is the core of the config package. It is used to retrieve the value of configuration variables.
+
+Assuming you are in production and we are using the `config.yml` above:
+
+```{r, echo=TRUE}
+# setting the environment for demonstration purpose. In normal use, you will not need to do this
+Sys.setenv(R_CONFIG_ACTIVE = 'production')
+# this is another thing I need to do for this demo: I will be handling different config files not stored at root level.
+# In a normal scenario, you will have a single config.yml file stored at project root level, which is where config is
+# by defualt looking for the configuration file. In that case, you do not need to specify the "file" argument.
+config_path_file <- file.path('posts', '2022-08-17_config_r')
+
+# get all the config variables:
+config::get(file=file.path(config_path_file, 'config_1.yml'))
+```
+
+More commonly, you will want to retrieve only a specific key:
+
+```{r, echo=TRUE}
+# get only nRuns:
+config::get('nRuns',
+            file=file.path(config_path_file, 'config_1.yml'))
+```
+
+config assumes that you have a file called config.yml in the root folder of your project. If this is not true, you can specify the path to your configuration file using the file argument of the get function.
+
+```{r, eval=FALSE}
+# to get all variables
+config::get(file="<path_to_file>")
+# to get a specific variable
+config::get("<variable_name>", file="<path_to_file>")
+```
+
+### Fallback to default
+
+In the config file you need to specify a default environment. This will be used if no active configuration is found or recognized. Considering the configuration file above.
+
+```{r, echo=TRUE}
+# set an environment that is not specified in config.yml
+Sys.setenv(R_CONFIG_ACTIVE = "hello")
+
+# retrieve nRuns
+config::get('nRuns',
+            file=file.path(config_path_file, 'config_1.yml'))
+```
+
+The environment `hello` is not recognized. config will use the value set for `default`: 10.
+
+### Inheritance
+
+You might have some values that are always the same across all environments. You do not need to replicate them in all definitions. You can add them only to default. All other environments will inherit those values from default.
+
+Let’s modify the config file.
+
+```yaml
+default:
+  runParallel: FALSE
+  nRuns: 10
+  thisIsACommonVariable: hello
+production:
+  runParallel: TRUE
+  nRuns: 100
+  
+```
+Now, let’s try to get `thisIsACommonVariable` for the production environment.
+
+```{r, echo=TRUE}
+# set the environment to "production"
+Sys.setenv(R_CONFIG_ACTIVE = "production")
+
+config::get('thisIsACommonVariable',
+            file = file.path(config_path_file, 'config_2.yml'))
+```
+
+`thisIsAcommonVariable` was not defined in `production`: it was inherited from default. What happens is that `config` will first attempt to find the variable you request in the active environment. Failing that, it will look into the definitions for `default`. Unless the `inherit` keyword is used.
+
+You can have fine control over the inheriting mechanism by using the inherits field in the yml file. Suppose you have three environments: `dev`, `test`, and `production`. Suppose that you want to use the same value for the variable `inheritedKey` in test and in production, and another value in dev and in default. Using inherits you can create the following config.yml:
+
+```yaml
+default:
+  key1: 1
+  inheritedKey: hi
+
+production:
+  key1: 2
+  inherits: test
+  
+test:
+  key1: 3
+  inheritedKey: goodbye
+  
+dev:
+  key1: 4
+ 
+```
+
+Let’s try to get inheritedKey for the different environments.
+
+```{r, echo=TRUE}
+# fallback to "default" environment
+Sys.setenv(R_CONFIG_ACTIVE = "hello")
+# retrieve inheritedKey
+config::get('inheritedKey',
+            file = file.path(config_path_file, 'config_3.yml'))
+
+# set environment to "dev"
+Sys.setenv(R_CONFIG_ACTIVE = "dev")
+# retrieve inheritedKey
+config::get('inheritedKey',
+            file = file.path(config_path_file, 'config_3.yml'))
+
+
+# set environment to "test"
+Sys.setenv(R_CONFIG_ACTIVE = "test")
+# retrieve inheritedKey
+config::get('inheritedKey',
+            file = file.path(config_path_file, 'config_3.yml'))
+
+
+# set environment to "production"
+Sys.setenv(R_CONFIG_ACTIVE = "production")
+# retrieve inheritedKey
+config::get('inheritedKey',
+            file = file.path(config_path_file, 'config_3.yml'))
+```
+
+As expected, default uses the value hi. dev also uses hi, and this is because you did not set any value for inheritKey in dev: dev inherits from default. test uses the value goodbye, as this is what was set for that environment. production also uses goodbye. You did not set the value of inheritedKey in production, but you do not inherit it from default because you specified that you wanted production to inherit from test instead.
+
+## Run R code in config.yml
+
+You can use R code inside config.yml by adding !expr before in-line R commands. This is particularly useful if you need to set some value based on the hardware where you run the code. For instance, production is likely to have more cores than your local machine, so you can use different settings for parallel computing in the environments. Another use case is if you want to read in another configuration file.
+
+```yaml
+default:
+  memSize: !expr sum(seq(1,10))
+  serverConfig: !expr config::get(file="serverConfig.yml")
+  nCores: !expr parallel::detectCores()
+
+```
+
+Be mindful if you do this: your `config.yml` now depends on R. Other systems will not be able to use the file anymore. Depending on your solution architecture this might be okay, but in general avoid tight coupling.
+
+Another thing to be mindful is that even when you query for a single, specific configuration variable, all the keys are "executed". If you use lengthy computations in your config.yml, this will have negative impact on the application performance every time you call `config::get()`. Consider this example:
+
+```yaml
+default:
+  var_1: !expr Sys.sleep(3)
+  var_2: "hi"
+  
+```
+
+and the result of this benchmark:
+
+```{r, echo=TRUE}
+Sys.setenv(R_CONFIG_ACTIVE = 'hello')
+
+tictoc::tic()
+config::get('var_2',
+            file = file.path(config_path_file, 'config_5.yml'))
+tictoc::toc()
+```
+
+Note how retrieving the `var_1` took 3 seconds. This is because `config` also run the code for `var_1`.
+
+## Merge
+
+Sometimes you might have different configuration files for different components of the system, for instance the database and the server. You can use the `config::merge()` function to combine these two configurations.
+
+Suppose you have two configuration files: `config_server.yml` and `config_database.yml`.
+```yaml
+# config_server.yml
+default:
+  runParallel: FALSE
+  serverURL: "123.456:8080"
+
+```
+
+```yaml
+# config_database.yml
+default:
+  runParallel: TRUE
+  databaseName: fancyDB
+test:
+  runParallel: FALSE
+  databaseName: fancyDBTest
+  nTests: 3
+
+```
+
+You can merge the two using `config::merge()`.
+
+```{r, echo=TRUE}
+# Set the environment to "default"
+Sys.setenv(R_CONFIG_ACTIVE = "default")
+# merge database into server
+config::merge(
+  base_config = config::get(file='config_server.yml'),
+  merge_config = config::get(file='config_database.yml')
+)
+```
+
+
+`merge` only merges the configuration for the active environment, in this example `default`.
+
+The merging order matters. For keys with the same name between the two files, merge keeps values from merge_base. In the example above, after the merge `runParallel` is FALSE, which was the value in the `base_config`: `config_server.yml`. If you reverse the order and make `config_database.yml` the `base_config`, `runParallel` becomes TRUE.
+
+```{r, echo=TRUE}
+# set the environment to "default"
+Sys.setenv(R_CONFIG_ACTIVE = "default")
+# merge server into database
+config::merge(
+  base_config = config::get(file='config_database.yml'),
+  merge_config = config::get(file='config_server.yml')
+)
+```
+
+# Wrap up
+
+The `config` package is extremely easy to use. All you need is a config.yml file and the global variable `R_CONFIG_ACTIVE`. Once you have those two items all you need to do is to use `config::get()`. It really cannot get any simpler.
+
+Because the yml format is a standard, you can share configurations with other systems.
+
+`config` official documentation is [here](https://rstudio.github.io/config/articles/introduction.html).
+
+I hope the `config` package will help you manage your configurations in R in an efficient way.
+
+I have more articles coming up on how to unlock the power of R. Follow me if you want to know more.

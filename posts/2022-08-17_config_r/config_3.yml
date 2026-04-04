@@ -1,0 +1,15 @@
+default:
+  key1: 1
+  inheritedKey: hi
+
+production:
+  key1: 2
+  inherits: test
+  
+test:
+  key1: 3
+  inheritedKey: goodbye
+  
+dev:
+  key1: 4
+ 

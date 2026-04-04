@@ -1,0 +1,152 @@
+---
+title: "Introduction to engineering R plumber API"
+description: "General guidelines on how to organize your R plumber API."
+date: "2023-08-01"
+categories: [r, plumber]
+---
+![Photo by Sigmund on Unsplash](img/cover.jpg)
+
+
+## What we will learn today
+
+In this first article on [plumber](https://www.rplumber.io/index.htm) API, we will start to look at the basics of using plumber in R. We will define some terminology and we will look at how to structure a plumber API project.
+
+## API
+
+Application Programming Interface, or API, is a collection of techniques that allow computer programs to exchange information. There are several protocols that can define the contract at this interface. Probably the most common one is the Representational State Transfer (REST) protocol, and this is the protocol we will be discussing today.
+
+Writing an API used to be a specialized software engineering task. For R users, this changed in the early 2010s, when `{plumber}` 0.1.0 was released. The `{plumber}` framework opened a world of new possibilities to R developers, and particularly to data analysts and data scientists, which now have new ways to share their work.
+
+An API allows us to have a simple interface to analytic results that anyone can easily access. Suppose we have built a predictive model to establish if a client is likely to renew or not a subscription. We could collect the data about the customer, run our model locally, and finally send the results over to whoever needs them. But we could also build an API. With an API we have a service constantly running that can also perform live predictions on-demand. With this simple API, we have achieved:
+
+* Automation: we do not need to manually perform analysis on-demand.
+* Enhanced data security: there is less handover of data. No-one has to send us data and we do not have to store client data anywhere. The API takes care of everything.
+* The API service is available 24/7. It does not depend on our work schedule. It does not go on holiday. It does not depend on our knowledge of the model. It is always available.
+
+## Anatomy of a plumber API
+
+To start with, let’s make sure we have a good grasp of the fundamental components of a `{plumber}` API. Let’s consider an example coming from the plumber official documentation.
+
+```{r, eval=FALSE}
+# plumber.R  
+#* Plot a histogram  
+#* @serializer png  
+#* @get /plot  
+function() {  
+  rand <- rnorm(100)  
+  hist(rand)  
+}
+```
+
+### API logic and business logic
+
+This API has one `GET` endpoint, called `plot`. The endpoint returns an image in png format.
+
+This part is what I call API logic: the definition of the endpoints and their type.
+
+The `plot` endpoint is a function. The definition of the function is what I call business logic. The API does not care what the function does. The API is not concerned with what image is returned. An histogram? A scatterplot? A photo? It does not matter to the API as long as it can be serialized as a png.
+
+It is the business that is interested in what the image actually is. This is why the implementation of the plot function is the business logic. In the future, the business might want another kind of chart, and the API should not be concerned about this.
+
+### Documentation
+
+Another thing to note is the documentation format. `{plumber}` uses `{roxygen2}` style of documentation, however it is recommended to use `#*` rather than`#'` to avoid conflicts with `{roxygen2}` syntax. The most important tags we will use are `serializer` and the endpoint method, for example `get` or `post`. We will look at fine tuning documentation in another article.
+
+## General project organization
+
+When I design an API, I like to follow the same principles I illustrated for a [Shiny app](../2022-10-16_build_professional_shiny_1/index.qmd). At its core, I like to have a clear separation between the API logic and the business logic.
+
+Looking back at the example above, we have the business logic embedded within the API logic. There are at least three major issues with this approach:
+
+* We cannot modify the logic without modifying and re-deployig the API.
+* We can end up with a very large and hard to manage plumber.R.
+* We cannot test our business logic, at least not independently of the API.
+
+We should extract the business logic and save into a separate R file saved into an R folder:
+
+```{r, eval=FALSE}
+# plumber.R  
+library(here)  
+source(here::here('R', 'logic-myPlot.R'))  
+#* Plot a histogram  
+#* @serializer png  
+#* @get /myPlot  
+myPlot  
+  
+  
+# R/logic-myPlot.R  
+#' @title myPlot  
+#' @description Produce a histogram plot of 100 points normally distributed  
+#' @return A plot  
+#' @export  
+myPlot <- function(){  
+ rand <- rnorm(100)  
+ hist(rand)  
+}
+```
+
+More experienced R developers will probably already understand that we can take this a step further and create a package for our business logic. The API will simply load it with a standard `library()` call. If you can do that, go for it. If you are not comfortable with R packages, that’s OK. Having at least the minimum level of separation illustrated above is already a good improvement over the first version we saw.
+
+Note that the business logic R file has the prefix `logic-`. We will see later why I use a prefix system.
+
+If we follow this pattern we will end up with a structure like this for our project:
+
+```{r, eval=FALSE}
+.  
+├── plumber.R  
+├── R  
+│   └── logic-myPlot.R  
+├── config.yml  
+├── renv  
+├── renv.lock  
+└── tests
+```
+
+This looks very close to the [standard structure of an R package project](../2022-07-13_setup_r_for_success/index.qmd). Most R developers will recognize it and will know how to handle it.
+
+Note that since we have separated our business logic from the API logic, we can now have a `tests` folder for our [testthat](../2022-08-26_unit_testing_r_1/index.qmd) unit tests.
+
+I am also assuming we will be using [renv](../2022-07-22_renv_r_env_reproducible/index.qmd) for our project, and most likely [config](../2022-08-17_config_r/index.qmd) as well.
+
+## Testing
+
+plumber does not have a dedicated testing framework. However, if you follow the structure I recommended above, it will be very easy to test the business logic. Because the business logic is in R files inside the R folder, you can use the standard testthat library to execute uni testing.
+
+As for testing the API logic, or any other form of end-to-end testing that requires running the API, then we have two main options:
+
+1. Use an external tool such as Postman or Talend API tester.
+2. From the R session.
+
+The second option is appealing because we can pair it `{testthat}` and automate API testing -but you can create automated testing suited with software such as Postman as well-. The challenge is that while plumber is running, we cannot run anything else from the console: our R session is busy. The workaround is to use in combination the RStudio console and the terminal.
+
+### Test from the console
+
+The idea is to start the plumber API from the R terminal, so we can use the console to test.
+
+To start a plumber API from the terminal we simply need to create a bash `startApi.sh` script in the root folder. The bash script is a simple one liner:
+
+```{r, eval=FALSE}
+Rscript -e "plumber::plumb(file = 'plumber.R')$run(port = <port_number_here>)"
+```
+
+All we have to do now is to execute the bash script from the terminal with `sh startAPI.sh`. Note that these instructions work on Linux and Mac, in Windows we might have to change our scripting language, but the idea is the same.
+
+Now our API is running and we can use `{httr}` to call our API. We can even combine it with `{testthat}` to automate testing.
+
+### Test from the terminal
+
+With this option, we start the plumber API from the console and we test from the terminal. Starting the API from the console is easy. We can click on the “Run” button located at the top right of the plumber.R file, or we can use this command:
+
+```{r, eval=FALSE}
+plumber::plumb(file = 'plumber.R')$run(port = <port_number_here>)
+```
+
+Once the API is running, we can use `{curl}` from the terminal to query the API. We can also write bash scripts to automate testing.
+
+### rsconnect
+
+The testing scenario is simplified if we can deploy our API to a testing environment, for instance through `{rsconnect}`. This is the option I would recommend as it is the one that gives the most flexibility when it comes to testing.
+
+## Next steps
+
+I have planned a few more articles on plumber. In those articles we will look at more advanced concepts such as routing and filters, asynchronous usage, and more.

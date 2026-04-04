@@ -1,0 +1,237 @@
+---
+title: "Programmatic plumber - Part 3: filters and hooks"
+description: "Modify the routing of your plumber API."
+date: "2023-12-20"
+categories: ["r", "plumber"]
+image: https://cdn-images-1.medium.com/max/800/1*QNtU4mz_C46PWxa4E2EDGA.png
+---
+![Image generated with Canva AI Magic Media.](https://cdn-images-1.medium.com/max/800/1*QNtU4mz_C46PWxa4E2EDGA.png)
+
+### Introduction
+
+Welcome to the third part of our series on programmatically developing R plumber REST APIs. If you have not read the [first article](../2023-11-22_programmatic_plumber_1/index.qmd), it would be helpful to start there.
+
+Previously, we delved into how to convert annotated plumber APIs to programmatic ones, addressed error handling, and enhanced the API documentation.
+
+Today, we will explore two features that can be used to modify the API routing: filters and hooks.
+
+Until now, we have primarily used basic routing for our API. The request heads straight into the endpoint, and the response is returned to the user. This is not entirely accurate, as plumber always applies some filters to the endpoints behind the scenes, but we can overlook that for now.
+
+We have only modified the routing when handling errors. In those instances, we intercepted the response and made some alterations.
+
+With plumber, we can exercise even more control over the routing.
+
+### Filters
+
+Filters capture the request before it reaches the endpoint. They are ideal for validating and preprocessing the request and adding extra information, such as a timestamp or a unique session ID.
+
+A key feature of filters is that endpoints can opt out of them. This is crucial because, if you use a filter to validate the body of a POST request, you likely do not want that filter applied to a `ping` or `echo` endpoint.
+
+Let us explore how we can define filters programmatically. We will use the `randLetters` endpoint from the previous two articles and add a `ping` endpoint. We will then define two filters, and we will have `ping` opt out of one of them. For now, our filters will simply print a statement to the R console.
+
+```
+library(plumber)
+lapply(list.files(here::here("R"), full.names = TRUE), function(d) {
+  source(d)
+})
+
+root <- pr()
+pr() %>%
+  # add filters
+  pr_filter("sessionID", function(req) {
+    print("filter add session ID")
+    forward()
+  }) %>%
+  pr_filter("lettersValidation", function(req) {
+    print("filter validation")
+    forward()
+  }) %>%
+  # add endpoints
+  pr_get(
+    path = "/randLetters",
+    handler = function(n = 10) {
+      sample(letters, n, replace = TRUE)
+    },
+    serializer = serializer_json()
+  ) %>%
+  pr_get(
+    path = "/ping",
+    # this next line causes the endpoint to opt out of the
+    # lettersValidation filter
+    preempt = "lettersValidation",
+    handler = function() {},
+    serializer = serializer_json()
+  ) %>%
+  pr_run()
+```
+
+After running the `randLetters` endpoint, the console will display the following, confirming that we run both filters.
+
+```text
+filter add session ID
+filter validation
+```
+
+When we execute the `ping` endpoint, the following will be displayed in the console, confirming that we only run the `add session ID` filter.
+
+```text
+filter add session ID
+```
+
+Filters are a powerful tool for executing code, such as validation and formatting, before data reaches the endpoint. Because filters can be opted out of, we can easily control which endpoints they affect.
+
+The order in which filters are declared is crucial. Filters execute in the order they are declared. Therefore, if a filter depends on the output of another, it must be declared afterward.
+
+Additionally, when an endpoint opts out of a filter, it disrupts the filter chain. Consider an API defined in this order:
+
+- `Filter_A`
+- `Filter_B`
+- `Filter_C`
+- `Endpoint_S`
+
+Normally, the execution order is `Filter_A` > `Filter_B` > `Filter_C` > `Endpoint_S`. If `Endpoint_S` opts out of `Filter_B`, the order changes to `Filter_A` > `Endpoint_S`. By opting out of `Filter_B`, it breaks the filter chain, preventing any filters declared after `Filter_B` from running.
+
+You can also use filters with the classic annotated plumber style. Just use the `@filter` annotation to declare a filter, and the `@preempt` annotation to opt endpoints out of filters. For example:
+
+```
+library(plumber)
+lapply(list.files(here::here("R"), full.names = TRUE), function(d) {
+  source(d)
+})
+
+#* @filter sessionID
+function(req) {
+  print("filter add session ID")
+  forward()
+}
+
+#* @filter lettersValidation
+function(req) {
+  print("filter validation")
+  forward()
+}
+
+#* @get /randLetters
+#* @serializer json
+function(n = 10) {
+  sample(letters, n, replace = TRUE)
+}
+
+#* @get /ping
+#* @serializer json
+#* @preempt lettersValidation
+function() {}
+```
+
+### Hooks
+
+Hooks are router modifiers that intercept the API call at different stages:
+
+- `preroute`
+- `postroute`
+- `preserialize`
+- `postserialize`
+
+Endpoints cannot opt out of hooks. However, we will discuss later how to code hooks to perform specific tasks for certain endpoints. Hooks are excellent for handling logging and adding consistent elements to the request, like a unique session identifier. They can be easily set up using programmatic plumber.
+
+Let us examine an example that includes:
+
+- The `ping` and `randLetters` endpoints mentioned earlier
+- A `preroute` hook that adds a unique session ID and a timestamp to the request
+- A `preserialize` hook that adds the unique session ID and the request completion time to the response
+- A `postserialize` hook that logs the information, printing to the console for now
+
+The example code demonstrates how to add checks to the hooks so they execute different logic depending on the endpoint the user calls.
+
+Here is the file with the code for the hooks:
+
+```
+# ./R/hooks.R
+
+# preroute hook
+prerouteHook <- function(req) {
+  # plumber creates some hidden endpoints. We do not run the hook for those.
+  # We use req$PATH_INFO to control what runs for each endpoint.
+  if (!req$PATH_INFO %in% c("/", "/__docs__/", "/openapi.json")) {
+    req$sessionID <- paste0(sample(seq(0, 9), 5, replace = TRUE), collapse = "")
+    req$timestamp <- Sys.time()
+  }
+  req
+}
+
+# preserializer hook
+# value will be what is going to be serialized in the response
+preserializerHook <- function(req, value) {
+  if (!req$PATH_INFO %in% c("/", "/__docs__/", "/openapi.json")) {
+    value <- tryCatch({
+      value <- as.list(value)
+      value$sessionID <- req$sessionID
+      value$elapsed_time <- format(Sys.time() - req$timestamp)
+      value
+    }, error = function(err) {
+      value
+    })
+  }
+  value
+}
+
+# postserializer hook
+postserializerHook <- function(req, res) {
+  if (!req$PATH_INFO %in% c("/", "/__docs__/", "/openapi.json")) {
+    logEntry <- list()
+    logEntry$sessionID <- req$sessionID
+    logEntry$timestamp <- req$timestamp
+    logEntry$endpoint <- req$PATH_INFO
+
+    if (req$PATH_INFO == "/randLetters") {
+      logEntry$request_inputs <- req$args
+      logEntry$responseBody <- res$body
+    }
+
+    cat(as.character(jsonlite::toJSON(logEntry)))
+  }
+}
+```
+
+Now that the hook functions are defined, the next step is to add them to the router.
+
+```
+# plumber.R
+root <- pr()
+
+pr() %>%
+  pr_hooks(list(
+    preroute = prerouteHook,
+    preserialize = preserializerHook,
+    postserialize = postserializerHook
+  )) %>%
+  pr_get(
+    path = "/randLetters",
+    handler = function(n = 10) {
+      sample(letters, n, replace = TRUE)
+    },
+    serializer = serializer_json()
+  ) %>%
+  pr_get(
+    path = "/ping",
+    handler = function() {},
+    serializer = serializer_json()
+  ) %>%
+  pr_run()
+```
+
+Hooks are defined using the `pr_hooks()` method within a named list. In the hook, `req$PATH_INFO` can be used to manage what is executed for each endpoint.
+
+As a recommendation, consider removing the actual function from the `pr()` chain, just as we did for the endpoint handlers. Doing this can result in a more compact and manageable plumber file, allowing hooks to be tested like traditional functions.
+
+### Conclusion
+
+I will continue to share more about plumber, logging, hooks, and filters. However, this concludes the introductory series on programmatic plumber.
+
+Throughout this series, we have delved into the power and flexibility of programmatically developing and managing R plumber REST APIs. We have learned to convert annotated plumber APIs into programmatic ones, handle errors, enhance API documentation, and use filters and hooks to modify API routing. I hope these simple examples have given you a deeper understanding of the control and customization options available when working with plumber.
+
+### Further Reading
+
+- [Programmatic plumber documentation](https://www.rplumber.io/articles/programmatic-usage.html)
+- [Part 1 of this series](../2023-11-22_programmatic_plumber_1/index.qmd)
+- [Answer on Posit Community explaining how endpoints break the filter chain](https://community.rstudio.com/t/using-multiple-filters-with-programmatic-plumber/177532/2)

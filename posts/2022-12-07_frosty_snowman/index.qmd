@@ -1,0 +1,311 @@
+---
+title: "Frosty The Snowman. In R!"
+description: "Make your own Frosty The Snowman in R!"
+date: "2022-12-07"
+categories: [r]
+---
+![Frosty the snowman.](img/cover.png)
+
+The festive season is approaching! Let’s put our Christmas jumper on and let’s put away all the serious stuff about OOP, testing, proper Shiny development, etc. Today we make a Snowman!
+
+What are you saying? There is no snow where you live? You do not want to go outside in the cold? No problem, I’ve got you covered. We’ll make a snowman in R.
+
+Ready? Let’s get started. We are not savages, so we still create an R project, a repository, and we use renv. We party responsibly here.
+
+Got all of that ready? Great. Let’s install some dependencies. This is the hardest part of the tutorial, I promise. All we need is the R package rgl, a library tailored to 3D plotting. The tricky part is that rgl needs OpenGL to work. On my Mac, I had to install Quartzy to satisfy this requirement. Your mileage may vary, but the rgl documentation will tell you what you need. If you want to use some more advanced features, you will also need ImageMagik installed. We are not using those features, so if you just come along for the ride, you don’t need it.
+
+## Basic shapes
+
+We will use three 4 shapes in this project: spheres, cylinders, cones, and surphaces. You can explore how each of them is defined for the snowman in the code base linked at the bottom at the article. Here, let’s just look at how they work.
+
+### Spheres
+
+Spheres are very simple to define. Here is how you define a sphere centred in x = 0, y = 0, x = 0, with radius 1, and with uniform colour snow.
+
+```{r, eval=FALSE}
+spheres3d(x = 0,
+          y = 0,
+          z = 0,
+          radius = 1,
+          color = 'snow')
+```
+
+### Cylinders
+
+This is the easiest way I found to define cylinders. We start by creating a data.frame with the coordinates of the center of the two bases. The data.frame also has data for the radius and the colours. Each row of the data.frame has data for one cylinder. We then loop through the data.frame rows to draw the cylinders. With the code below we draw 2 cylinders. Both are parallel to the z axis and start the same y coordinate. One cylinder has hight 1, the other has hight 2. one cylinder has radius 1, the other has radius 2. The short cylinder is black, the tall one is red. The argument sides defines how smooth the cylinder rounded surface is. Higher number means smoother surface. The argument closed set to -2 means that cylinders are closed: we are drawing the two bases.
+
+```{r, eval=FALSE}
+cyl_data <- data.frame(start_X = c(0, 5),
+                       start_Y = c(0, 0),
+                       start_Z = c(0, 0),
+                       end_X = c(0, 3),
+                       end_Y = c(0, 0),
+                       end_Z = c(1, 2),
+                       radii = c(1, 2),
+                       colour = c('black', 'red'))
+
+for (i in 1:nrow(cyl_data)) {
+  cyl <- cylinder3d(
+    center = cbind(
+      c(cyl_data$start_X[i], cyl_data$end_X[i]),
+      c(cyl_data$start_Y[i], cyl_data$end_Y[i]),
+      c(cyl_data$start_Z[i], cyl_data$end_Z[i])),
+    radius = cyl_data$radii[i],
+    sides = 20,
+    closed = -2)
+  shade3d(cyl, col = cyl_data$colour[i])
+}
+```
+
+### Cones
+
+Cones are based on cylinders. The difference is in how we define the coordinates for the basis. In this example we define the the centre of the basis of the cones as pairs of x, y, and z coordinates. We then specify 2 radius. One for each base of the cone. We draw the cone using the cylinder3d geometry. The plotting funciton is cleaver enough to understand that it is drawing a cone rather than a cylinder.
+
+```{r, eval=FALSE}
+cone_centres <- cbind(c(0, 0), # x
+                      c(0, 0), # y
+                      c(0, 3)) # z
+radii <- c(1, 0.1)
+
+cone <- cylinder3d(nose_centres,
+                   radii,
+                   sides = 100,
+                   closed = -2)
+shade3d(cone, col = "red")
+```
+
+### Surfaces
+
+Surfaces requires 2 vectors and one matrix. The two vectors contain the extension of the surface across two dimensions. The matrix has the same number of rows and columns as the two vectors, and it contains the coordinate value for the third dimension. In the example below, we create a surface parallel to the xy plane. We then assign random values for the z coordinate.
+
+```{r, eval=FALSE}
+x_limits <- seq(-5, 5, length.out = 10)
+y_limits <- seq(-5, 5, length.out = 10)
+z_data <- matrix(data = NA, nrow = length(x_limits), ncol = length(y_limits))
+# populate the z_data matrix
+for (thisRow in 1:length(x_limits)){
+  for(thisCol in 1:length(y_limits)){
+    z_data[thisRow, thisCol] <- rnorm(1)
+  }
+}
+surface3d(x_limits, y_limits, z_data, color = 'red')
+```
+
+## Frosty the Snowman
+
+Let’s get started. You’ll see it is very easy.
+
+rgl has several functions to plot 3D shapes. We will be simply tuning the shapes and colours to put together a snowman. I don’t show the axis in the plots in this article. For a reference, the snowman will be developing in hight on the z axis, its nose will be pointing to -Inf of the y axis, and it will be symmetric on the y axis. The body will be centred on the z axis.
+
+### Body
+
+First up, the body. The body is made by three spheres of different sizes, slightly overlapping. In R:
+
+```{r, eval=FALSE}
+library(rgl)
+
+# 3 balls from bottom to top
+spheres3d(x = rep(0, 3),# pile up on the z axis
+          y = rep(0, 3),# pile up on the z axis
+          z = c(0, 2.5, 4.5),
+          radius = c(2, 1.5, 1),
+          color = rep('snow', 3))
+```
+
+![](img/body.png)
+
+### Buttons, eyes, and mouth
+
+Now we have the body. Same idea using the sphere geometry, and we can add some buttons, eyes and mouth. The time consuming part here is to find the exact placement of all the parts.
+
+```{r, eval=FALSE}
+# buttons -----------------------------------------------------------------
+# 3 from bottom to top
+spheres3d(x = rep(0, 3),
+          y = rep(-1 * sqrt(1.5^2 - 0.5^2), 3),# rest on the middle sphere of the body
+          z = seq(2, 3, length.out = 3),
+          radius = rep(0.2, 3),
+          color = rep('black', 3))
+
+# eyes --------------------------------------------------------------------
+spheres3d(x = c(0.45, -0.45),
+          y = rep(-1*sqrt(1^2-0.5^2), 2),
+          z = rep(4.7, 2),
+          radius = rep(0.2, 2),
+          color = rep('black', 2))
+
+
+# mouth -------------------------------------------------------------------
+# 5 spheres arranged in a smiley way
+x_mouth <- seq(0.42, -0.42, length.out = 5)
+z_mouth <- c(4.2, 4.05, 4, 4.05, 4.2)
+spheres3d(x = x_mouth,
+          y = -1*sqrt(1^2-x_mouth^2-(4.5-z_mouth)^2),
+          z = z_mouth,
+          radius = rep(0.1, 5),
+          color = rep('black', 2))
+
+rgl.snapshot('step2.png', fmt = 'png')
+view raw snowman_eyeButtonsMouth.R hosted with ❤ by GitHub
+
+Nose
+
+Perfect. Now let’s try a new geometry: a cone. We’ll use the cone to make the nose.
+
+# nose --------------------------------------------------------------------
+nose_centres <- cbind(c(0, 0), c(-1, -2), c(4.5, 4.5))#, x, y, z
+radii <- c(0.2, 0.01)
+cone <- cylinder3d(nose_centres, radii, sides = 100, closed = -2)
+shade3d(cone, col = "darkorange")
+
+rgl.snapshot('step3.png', fmt = 'png')
+view raw snowman_nose.R hosted with ❤ by GitHub
+
+Hat
+
+We don’t want our snowman to get cold. Let’s give him a fancy black tuba hat with a red ribbon. For this, we will use the cylinder geometry. We need one cylinder for the visor, one for the main tuba hat, and one for the ribbon.
+
+# the hat is made by 3 cylinders: the visor, the main tube part, and a red
+# stripe for some colour
+hat_data <- data.frame(start_X = c(0, 0, 0),
+                        start_Y = c(0, 0, 0),
+                        start_Z = c(5.2, 5.1, 5.21),
+                        end_X = c(0, 0, 0),
+                        end_Y = c(0, 0, 0),
+                        end_Z = c(5.21, 6.3, 5.4))
+hat_radii <- c(1.2, 0.7, 0.71)
+hat_colour <- c('black', 'black', 'red')
+
+for (i in 1:nrow(hat_data)) {
+  cyl <- cylinder3d(
+    center = cbind(
+      c(hat_data$start_X[i], hat_data$end_X[i]),
+      c(hat_data$start_Y[i], hat_data$end_Y[i]),
+      c(hat_data$start_Z[i], hat_data$end_Z[i])),
+    radius = hat_radii[i],
+    sides = 20,
+    closed = -2)
+  shade3d(cyl, col = hat_colour[i])
+}
+```
+
+### Scarf
+
+Getting there. Let’s give him also a scarf. The scarf is made by a cone and two surfaces, representing the two ends of the scarf. As a disclaimer here, the ends look they way they do because I made a mistake when I decalared the surface. However, I like the visual effect, so I left them like that. Feel free to “fix the bug” and have a more “squared” look.
+
+```{r, eval=FALSE}
+# the scarf is made by a cone around the neck, plus two surface to represent
+# the two ends. One of the two ends is in the front, the other at the back
+
+# around the neck: a cone
+scarf_centres <- cbind(c(0, 0), c(0, 0), c(3.3, 3.8))
+radii <- c(1.3, 0.9)
+cone <- cylinder3d(scarf_centres, radii,
+                   sides = 20, closed = -2)
+shade3d(cone, col = "springgreen4")
+
+# front bit
+# create a surface that goes within a x and y range
+x_limits <- seq(-1.2, -0.5, length.out = 10)
+y_limits <- -1 * sqrt(1.51^2 - x_limits^2)
+z_data <- matrix(data = NA, nrow = length(x_limits), ncol = length(y_limits))
+# populate the z_data matrix
+for (thisRow in 1:length(x_limits)){
+  for(thisCol in 1:length(y_limits)){
+    z_data[thisRow, thisCol] <- 2.5 + sqrt(1.51^2 - x_limits[thisRow]^2 - y_limits[thisCol]^2)
+  }
+}
+surface3d(x_limits, y_limits, z_data, color = 'springgreen4')
+
+# rear bit
+x_limits <- -1 * x_limits
+y_limits <- -1 * y_limits
+z_data <- matrix(data = NA, nrow = length(x_limits), ncol = length(y_limits))
+for (thisRow in 1:length(x_limits)){
+  for(thisCol in 1:length(y_limits)){
+    z_data[thisRow, thisCol] <- 2.5 + sqrt(1.51^2 - x_limits[thisRow]^2 - y_limits[thisCol]^2)
+  }
+}
+surface3d(x_limits, y_limits, z_data, color = 'springgreen4')
+
+rgl.snapshot('step5.png', fmt = 'png')
+```
+
+### Arms
+
+Only one thing left: the arms. The arms are made up by cylinders. Each arm has 5 cylinders: 1 for the upper arm, 1 for the forearm, and 3 for the fingers. Once we defined one harm, we can simply flip the x coordinates to get the other arm.
+
+```{r, eval=FALSE}
+# left arm (5 cylinders for upper arm, forearm, 3 fingers)
+arm_left <- data.frame(start_X = c(1.2, 3.1, 4.2, 4.2, 4.2),
+                       start_Y = rep(0, 5),
+                       start_Z = c(3, 3.3, 4.3, 4.3, 4.3),
+                       end_X = c(3.2, 4.2, 4.6, 4.4, 4.8),
+                       end_Y = rep(0, 5),
+                       end_Z = c(3.3, 4.3, 4.8, 5, 4.5))
+
+# right arm (5 cylinders for upper arm, forearm, 3 fingers)
+arm_right <- data.frame(start_X = -1*arm_left$start_X,
+                        start_Y = arm_left$start_Y,
+                        start_Z = arm_left$start_Z,
+                        end_X = -1*arm_left$end_X,
+                        end_Y = arm_left$end_Y,
+                        end_Z = arm_left$end_Z)
+# merge arms
+arms <- arm_right %>%
+  dplyr::bind_rows(arm_left)
+
+# radius of the cylinders making up the arms. Gets smaller moving
+# from upper arm to fingers
+arm_radii <- rep(c(0.25, 0.2, 0.08, 0.08, 0.08), 2)
+
+# plot all cylinders within a loop
+for (i in 1:nrow(arms)) {
+  cyl <- cylinder3d(
+    center = cbind(
+      c(arms$start_X[i], arms$end_X[i]),
+      c(arms$start_Y[i], arms$end_Y[i]),
+      c(arms$start_Z[i], arms$end_Z[i])),
+    radius = arm_radii[i],
+    sides = 20,
+    closed = -2)
+  shade3d(cyl, col = "tan4")
+}
+```
+
+### Ground
+
+Great. It just looks a bit put of context. Let’s give him some ground to stand on. For this, I started from the volcano dataset. This is because it is already in surface format, so it saved me one step. In this application, it won’t look like the volcano dataset at all because of the distortion caused by the dimensions we plot here. Nevertheless, we have a surface to rest our snow man on.
+
+```{r, eval=FALSE}
+# we use the volcano dataset to draw a rough terrain
+x_limits <- seq(-7, 7, length.out = ncol(volcano))
+y_limits <- seq(-7, 7, length.out = nrow(volcano))
+z_data <- 1.5*(volcano - min(volcano)) / (max(volcano) - min(volcano)) - 2.3
+surface3d(x_limits, y_limits, z_data, color = 'snow')
+```
+
+### Snow
+
+Almost done. The last thing missing is just some snow to create some wintery atmosphere. Snow flakes are small spheres with the centroid randomly generated.
+
+```{r, eval=FALSE}
+snow_balls_n <- 500
+spheres3d(x = sample(x = seq(-7, 7, length.out = snow_balls_n),
+                     size = snow_balls_n, replace = FALSE),
+          y = sample(x = seq(-7, 7, length.out = snow_balls_n),
+                     size = snow_balls_n, replace = FALSE),
+          z = sample(x = seq(-2, 8, length.out = snow_balls_n),
+                     size = snow_balls_n, replace = FALSE),
+          radius = rep(0.1, snow_balls_n),
+          color = rep('snow', snow_balls_n))
+
+rgl.snapshot('frosty.png', fmt = 'png')
+```
+
+Perfect. Our snowman is ready!
+
+![](img/cover.png)
+
+
+Thanks for reading, and remember to follow me to get notified on new stories.

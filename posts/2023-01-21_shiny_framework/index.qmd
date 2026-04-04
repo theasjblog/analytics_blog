@@ -1,0 +1,128 @@
+---
+title: "Which R Shiny framework is the best? A comparison of vanilla Shiny, golem, rhino, and leprechaun"
+description: "There is no single way to develop a shiny app. But is there a “best” way? Here are my thoughts on some common shiny frameworks."
+date: "2023-01-21"
+categories: [r, rshiny]
+---
+![Photo by Robert Anasch on Unsplash.](img/cover.jpg)
+A while ago, I wrote a [series of posts](../2022-10-16_build_professional_shiny_1/index.qmd) about writing a professional Shiny app. In those articles, I recommended the `{golem}` framework over vanilla Shiny. I did that knowing that other frameworks exist, but I had no experience using them, so I could not recommend them.
+
+I have now had the opportunity to look in more depth into `{rhino}` and `{Leprechaun}`. These are two of the most famous alternatives to the `{golem}` framework.
+
+### What is a Shiny framework?
+
+You do not need anything but Shiny to build a Shiny app. However, it is helpful to have a collection of functions that can consistently replicate a certain app structure, generate code snippets, or promote good development practices. This is what a framework is about—it makes your life as a Shiny developer easier. Frameworks are not necessary, but they are great development aids.
+
+In this article, I will compare vanilla Shiny, `{golem}`, `{rhino}`, and `{Leprechaun}` on several topics:
+
+- Framework reliability
+- Target type of developer
+- Project structure
+- Overall development experience
+- Testability
+
+### Vanilla Shiny
+
+#### Code Base Reliability
+Shiny is the foundation of everything else in this list. It has been around for a while and is maintained by Posit, which has made significant investments in the platform. Shiny will not disappear anytime soon.
+
+#### Target Type of Developer
+Shiny’s mission is to enable any R user to quickly and easily create an interactive web app. It achieves this well, requiring relatively low effort to learn. However, it lacks strict coding practices, making it suitable for:
+
+1. New Shiny users experimenting with the library.
+2. Experienced developers who can enforce good practices for production-ready apps.
+
+#### Project Structure
+Shiny offers complete freedom in project structuring, which can be beneficial for beginners but may result in non-scalable apps.
+
+#### Overall Development Experience
+Development in vanilla Shiny is not very efficient. You may find yourself frequently copying and pasting code due to the lack of structured guidance. However, most online tutorials will work without issues.
+
+#### Testability
+Testability is not a top priority for Shiny. Although testing options have improved, vanilla Shiny does not enforce good practices, often leading to large, untestable single-file apps.
+
+### Golem
+
+#### Code Base Reliability
+`{golem}` has been around for quite some time and is maintained by ThinkR, a well-established French consortium of R experts.
+
+#### Target Type of Developer
+`{golem}` is a step up from vanilla Shiny, offering a structured approach while retaining ease of use. It is particularly suited for teams looking to standardize Shiny app development, even if they lack strong software development backgrounds.
+
+#### Project Structure
+`{golem}` treats the app as an R package, enforcing a structured approach. While this adds some overhead, it promotes best practices and improves maintainability.
+
+#### Overall Development Experience
+Development in `{golem}` is similar to vanilla Shiny but introduces naming conventions and folder structures. The additional constraints are manageable and beneficial in the long run.
+
+#### Testability
+`{golem}` improves testability by following the R package structure, making it easier to use testing frameworks like `testthat` and `shinytest`.
+
+### Rhino
+
+#### Code Base Reliability
+`{rhino}` is relatively new but backed by Appsilon, a company with strong expertise in Shiny development.
+
+#### Target Type of Developer
+`{rhino}` takes `{golem}`’s structured approach further by enforcing software engineering best practices, making it more suited to developers with a software background.
+
+#### Project Structure
+`{rhino}` uses a structured approach based on the `box` package and enforces modularization, which enhances maintainability.
+
+#### Overall Development Experience
+Developing in `{rhino}` may feel unusual at first due to its heavy reliance on encapsulation. However, once understood, it simplifies development and improves maintainability.
+
+#### Testability
+`{rhino}` encourages testable code by enforcing modularization. However, its unconventional structure requires additional setup for testing frameworks.
+
+### Leprechaun
+
+#### Code Base Reliability
+`{Leprechaun}` is a relatively young project developed by a single individual, making it a riskier choice for production environments.
+
+#### Target Type of Developer
+`{Leprechaun}` sits between `{golem}` and `{rhino}`, offering fewer dependencies than `{golem}` but not as structured as `{rhino}`. It is best suited for developers needing a lightweight framework.
+
+#### Project Structure
+`{Leprechaun}` does not enforce a rigid structure, leaving it to the developer to ensure scalability.
+
+#### Overall Development Experience
+`{Leprechaun}` development is similar to vanilla Shiny but has some quirks. For instance, starting the app can sometimes be challenging.
+
+#### Testability
+`{Leprechaun}` offers some support for testing but does not enforce best practices, making its testability closer to vanilla Shiny than `{golem}` or `{rhino}`.
+
+### Other Considerations
+
+- **renv**: `{rhino}` activates `renv` by default, which is a plus. `{golem}` does not.
+- **app.R**: `{golem}` requires an `app.R` file for deployment, while `{rhino}` handles this differently using `main.R`.
+- **box**: `{rhino}` relies on `box` for encapsulation, but `box` is still evolving, leading to occasional workarounds.
+
+### A Summary table
+
+| Framework       | Comments |
+|----------------|----------|
+| **Vanilla shiny** | Use it if you are learning shiny's basics, so that you can avoid any overhead. |
+| **golem** | Use it to take your apps to the next level. Also, it is best used in teams where not all individuals are expert software developers. |
+| **rhino** | Use it if you and your team have a background in full-stack apps development, or at least you understand its principles. Keep an eye on its progression, and particularly on its dependency on the box package. |
+| **leprechaun** | Honestly, I cannot find a use case where it makes sense to recommend `{leprechaun}`, except when you have a hard requirement to limit dependencies as much as possible. |
+
+### Conclusion
+
+Which framework should you use? It depends on your experience and goals
+
+- **Beginners**: Start with vanilla Shiny.
+- **Teams standardizing development**: Use `{golem}`.
+- **Experienced developers enforcing best practices**: Use `{rhino}`.
+- **Need for a lightweight framework**: Consider `{Leprechaun}`, but be aware of its limitations.
+
+Personally, I am transitioning from `{golem}` to `{rhino}` but still recommend `{golem}` for teams not yet ready for `{rhino}`.
+
+---
+
+**References:**
+- [Shiny](https://shiny.rstudio.com/)
+- [Golem](https://github.com/ThinkR-open/golem)
+- [Rhino](https://appsilon.github.io/rhino/index.html)
+- [Leprechaun](https://leprechaun.opifex.org/#/)
+

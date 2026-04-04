@@ -1,0 +1,182 @@
+---
+title: "James Clear’s Atomic Habits for software developers and managers"
+description: "Use the Atomic Habits method to adopt best software engineering practices and to improve your team’s work quality."
+date: "2023-03-10"
+categories: ["general"]
+---
+![Photo by Nubelson Fernandes on Unsplash.](./img/cover.jpg)
+
+
+> The most effective form of learning is practice, not planning.
+
+You might be familiar with the book _Atomic Habits_ by James Clear. It is a great read I strongly recommend.
+
+Most of the book interpretations are about how to modify your personal routine to form or abandon habits. Think of stuff like:
+
+* How can I read more?
+* How can I eat better?
+* How can I quit smoking?
+* How can I find the time to learn X or Y?
+
+All of this is great, but there is much more to Clear’s book than this. In fact, James is a prolific public speaker. He talks about his method applications to different contexts, from parenting to business.
+
+Today we will look at how we can leverage James’ method to become a better software developer. A professional developer. In [this article](../2023-02-02_no_good_practices/index.qmd) I mentioned some of the basic core skills that differentiate an amateur from a professional. As a quick re-cap, stuff like:
+
+*   Using version control.
+*   Using the proper IDE.
+*   Using the correct project and code structure.
+*   Define tests.
+*   Document and comment your code.
+
+If we think of these skills as habits, then James’ method can help us make the switch into the professional world.
+
+### What is a “habit”?
+
+According to the Oxford Dictionary, a habit is:
+
+> A thing that you do often and almost without thinking, especially something that is hard to stop doing.
+
+This concept is adopted by James, who also shift the focus to the **_habit formation_** process:
+
+> **Habit formation** is the process by which a behavior becomes progressively more automatic through repetition. The amount of time you have been performing a habit is not as important as the number of times you have performed it.
+
+The last sentence is key. What we will see today is how to use James’ method to increase the chances of “doing the right thing”, and doing it as often as possible.
+
+### Before we start
+
+There is an obvious assumption made here: that you do know what the good habits are. We cannot give this for granted, especially not for less experienced team members.
+
+It is pointless to try to adopt habits if we do not even know what the habits are.
+
+Here is our first action for you, depending on your role
+
+* **Developer.** Do your homework. Learn from the best coder out there: colleagues, but also reputable open source repositories. Read from the best authors -just to cite one name: Uncle Bob Martin and his book series on “Clean Code”-.
+* **Manager.** Create an environment to reward, nurture, and share the knowledge of best practices. We will see later how the environment is a critical factor in determining successful habits’ formation.
+
+### First rule: Make it obvious
+
+![If you read in bed, keep the books you want to read there. It will be obvious what you have to do.](img/first.png)
+
+This is the “cue”. The classic example is that, if you want to read more, you should put your book on the pillow -or wherever you are more likely to see it-.
+
+How can we apply the first rule to software engineering best practices? I can think of a few options.
+
+*   Save on the desktop shortcuts to key tools you should be using (version control, IDE, testing frameworks, etc.).
+*   Keep a copy of something like “_Clean code_” right next to your workstation.
+*   Make a meme with a serious looking Uncle Bob looking at you and saying “How would I do it?”. Use it as a screensaver.
+*   Use some sort of reminder app on your phone and/or workstation to send you push notifications like “I will write unit tests”, or “I will document that code”.
+
+There is no limit to how to “make it obvious”. Think of your particular situation and find a way to remind yourself what you want to start doing.
+
+### Second rule: make it attractive
+
+![Use a little incentive to make attractive what might not be attractive. Writing functions’ documentation is not very exciting, but maybe having a sip of that coffee when you are done is.](img/second.png)
+
+This is known as establishing “cravings”. This is what takes you from seeing the cue to actually wanting to do the habit.
+
+What we aim to do is to make sure we associate the habit with something rewarding. Do you want to form the habit of meditation? Try to do it right before you have a cup of your favourite roast in the morning. Create an association between “meditation” and “coffee craving”.
+
+What does this mean for developers? It is easier to build habits for something we love to do, rather than for something we have to do. This means, for example, that it might be easier to build a new habit while working on your own personal projects than it is a work.
+
+Try to start to form new good habits with you personal projects. Associate the craving of the fun project with the formation of the habits.
+
+### Third rule: make it easy
+
+![Want to go to the gym in the morning? Make sure the bag is packed the night before (make it easy), and leave it by the door (make it obvious).](img/third.png)
+
+Also known as “response”. This is quite self-explanatory, and it goes hand in hand with the cues. If we want to run in the morning, putting our gear right next to the bed is a visual cue, but it will also “make it easier” since the stuff we need is already prepared. No need to go find that t-shirt at the bottom of the drawer while our parter is still asleep.
+
+Some practical examples include:
+
+*   Make it easy to log in. For example, use SSH over HTTP(S) to authenticate to the version control system. You will remove the extra authentication step.
+*   Create bookmarks to all the services and references you will need.
+*   Create templates. For instance, in RStudio you can [create a project template](../2022-12-24_make_your_r_project_template/index.qmd) that already contains a good infrastructure using version control, `renv`, `config`, `testthat`, etc.
+
+If you are a manager, there is a lot you can do to “make it easy”. Listen to your developers. Search for bottle-necks and common issues, stay informed on industry standards. Work with other managers to “make it easy” to adopt those standards.
+
+### Fourth rule: make it satisfying
+
+![Nothing better than a little “Oh yes! That’s great!” moment happening right after you perform a task to make sure you want to do it again.](img/fourth.png)
+
+This is also called the “reward”. As James put it:
+
+> What is immediately rewarded is repeated. What is immediately punished is avoided.
+
+If we make a habit obvious, attractive and easy, we increase the odds we do it. Once. But if we actually want to make it a habit, we need to do it again and again as many times as we can. This is what the reward is about.
+
+In the work context we can assume that rewards are things like a raise or a promotion. Those are indeed important rewards, but not as important as you think. There are three main issues with using raises and promotions as rewards:
+
+* In Maslow’s theory of motivation they can be found in the third level: belonging and recognition. They are not the main motivational factors (but they are still very important, especially if you want to retain your staff).
+* They are outside our control. If our organization is not ready to reward good practices, we will not get those perks.
+* They are not immediate rewards. We might work hard for a year to establish a new good habit, and only then maybe we get a raise. The feedback loop is too loose.
+
+For a habit to stick, we need to make it satisfying to our ego, moving to the fourth and fifth level of [Maslow’s pyramid](https://en.wikipedia.org/wiki/Maslow%27s_hierarchy_of_needs). We need to find a way to get some gratification immediately after we perform the desired habit.
+
+A common strategy adopted by virtually all health-promoting platforms is enabling tracking. When you perform the habit (go for a run, eat a god food, etc.) you get a star, a green tick on the calendar, you “close a circle”, or whatever it is. The mechanism exploited here is our desire to not break the winning streak.
+
+We are technical people, so we are normally inclined to like numbers. Why don’t we create our own streaks and trends by tracking things like:
+
+* How much faster am I getting in setting up a new project?
+* How much lower is the failure rate of my software?
+* How much quicker is my “time to recovery” after a failure?
+
+You can also use other kinds of rewards, similar to the “cravings” we saw earlier. Initialized a virtual environment? Get a candy.
+
+If we are managers, we can still make rewards possible. Don’t wait until the end of the year performance review to praise your team. Do it whenever you can. Make sure you share the spotlight.
+
+### Some general rules
+
+![We saw how we can apply the four cardinal principles of Atomic Habits to our work. Now, let’s consider a few more extra tips and tricks.](img/general.png)
+
+#### Habit stacking
+
+Creating new habits out of thin air is hard. It is much easier if we adopt a strategy known as _habit stacking_.
+
+*   Think of a habit you already have. For instance, “I clone a repository”
+*   Think of a new habit you want to form and that you could attach to it. As an example, you want to start to use an environment management system such as `renv` or `virtualenv`. Now we can start to stack those habits together: “After I clone the repo, I initialize the environment manager”. Note that RStudio also helps you by “making it easy” here: when you create a new project, you can initialize with `{renv}` by simply clicking on a checkbox.
+
+Other examples can be:
+
+*   After I define a function, I create its documentation (before the implementation phase).
+*   After I create a repo, I write the skeleton of a README file.
+*   After I create the test dataset, I create its documentation.
+*   If you want to get into test driven development: After I decide what my function should do, I write tests for it (before I write the function).
+
+#### Simply resisting temptation is a bad strategy
+
+Writing code without good practices, especially at the beginning of your career, will feel easy and fast. This is natural: our habits are not consolidated into automated actions yet.
+
+**As a developer:**
+
+Simply thinking “I will resist the temptation of cutting corners” will not work. You will need to make the new way of working obvious, attractive, easy, and rewarding. You will need to be proactive.
+
+**As a manager:**
+
+* Make sure that your developers have what they need to work properly and that they are rewarded for working well.
+* At some point, you will have to play the bad cop. For example, If you want to adopt DevOps (or MLOps, or any X-Ops for what matters) you cannot simply rely on developers to remember to do things right. You will impose quality checks that will reject bad work: pull requests, failing tests, insufficient test coverage, or any quality requirements you might have.
+
+> Sometimes success is less about making good habits easy and more about making bad habits hard.
+
+#### Fostering the right culture
+
+As James points out, we imitate the habits of three social groups: the close, the many, the powerful.
+
+**As a developer**
+
+Design your environment: join a culture where your desired behavior is the normal behaviour. Ask questions at interviews to uncover this.
+
+**As a manager**
+
+* **The Close.** Make sure that all the peers in the team are equally driven towards best practices. This way, they can motivate and inspire each other. This idea is often referred to as having an _accountability partner_.
+* **The Many.** Everyone in the organization should measure himself or herself against high standards. No-one is free to break the “good work” agreement.
+* **The Powerful.** Individuals in positions of power (team lead, tech lead, team manager, project manager, all the way to the CEO) must lead by example. They do not demand high quality while being sloppy.
+
+#### Two-Minute Rule
+
+> When you start a new habit, it should take less than two minutes to do.
+
+Do not try to do everything at once. Think of this project of forming good developer’s habits as swimming training. Break down and practice small parts of your stroke independently. Do not worry about the breathing, the catch, the pull, and the recovery all at once.
+
+#### Note:
+
+This post is not affiliated in any way to the work done by James Clear. It is an application of the method to the world of software development. There is a lot more in James’ book, and I recommend you pick up a copy and subscribe to his newsletter to get access to even more material.

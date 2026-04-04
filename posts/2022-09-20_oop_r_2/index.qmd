@@ -1,0 +1,434 @@
+---
+title: "S3, S4, RC, R6. Object oriented in R - Part 2"
+description: "RC and R6 objects."
+date: "2022-09-20"
+categories: [r, oop]
+---
+![](img/cover.png)
+
+This article builds on the concepts that I introduced in [part 1](/posts/2022-09-12_oop_r_1/index.html).
+
+**Topics in part 2**
+
+* RC objects.
+* R6 objects.
+* Final considerations
+
+# RC objects
+
+Reference class (RC) is part of base R and it is a very different implementation of OO in R compared to S3 or S4. While S3 and S4 represent functional OO, RC is encapsulated OO. In RC, methods belong to a class, and not to a function.
+
+RC will look familiar to traditional OO developers. Traditional OO is formally defined and it is encapsulated. However, RC syntax and behaviour is not friendly to pure R developers. We will see some examples of this later.
+
+Let’s look at an RC implementation of the Animals example.
+
+```{r, eval=TRUE}
+Animals <- setRefClass(
+  "Animals",  
+  # Fields of the class   
+  fields = list(species = "character"),   
+  # Methods of the class   
+  methods = list(     
+    # Initialize the class    
+    initialize = function(species = "") {      
+      if (species != "") {
+        # Validate the inputs      
+        validate(species)      
+        .self$species <- formatSpecies(species)
+      }
+    }, 
+    # User-friendly console class print 
+    show = function() {    
+      cat("Object of class 'Animals'. The species is ", .self$species, "\n")     
+    },    
+    # Validate the class inputs 
+    validate = function(input_species) { 
+      if (!is.character(input_species)) {  
+        stop("species must be a character")       
+      }   
+      if (is.na(input_species)) {  
+        stop("species cannot be NA")       
+      }     
+      if (!stringr::str_detect(input_species, '[a-zA-Z]+ [a-zA-Z]+')) {    
+        stop("species must contain genus and species separated by a single space.")       
+      }     
+    },   
+    # Format the species   
+    formatSpecies = function(str) {   
+      return(stringr::str_to_sentence(str))     
+    }   
+  )
+)
+
+newAnimal <- Animals(species = 'Canis Familiaris')
+newAnimal$show() # equivalent to show(newAnimal)
+```
+
+We created the class Animals with the following attributes:
+
+* **fields**: this is the list of variables inside the objects.
+* **methods**: the methods belonging to the class.
+
+The `initialize` method first validates the inputs, then it formats the species string, and finally it initializes the object.
+
+In real-life application, we can consider the example above a low-level constructor. You might want to provide the user with a user friendly constructor to create an object. Expensive validation checks can be reserved to the user-exposed constructor.
+
+If the class definition becomes too long it may be advisable to break it down in small chunks. We can attach methods to a class definition by using the `<class_name>$methods(<method_name> = function(){})` syntax.
+
+```{r, eval=TRUE, warning=FALSE}
+# define the class
+myClass <- setRefClass("myClass",
+                       fields=c(field1='character',
+                                field2='numeric'))
+# add a method
+myClass$methods(
+  show = function(){
+    ...
+  }
+)
+
+# add another method
+myClass$methods(
+  awsomeCalculation = function(){
+    ...
+  }
+)
+```
+
+## Inheritance
+
+RC supports inheritance through the contains argument of the constructor. Let’s consider our Dog subclass.
+
+```{r, eval=TRUE, message=FALSE}
+Dog <- setRefClass(
+  "Dog",
+  contains = 'Animals',
+  fields=c(name="character",
+           age = 'numeric'),
+  methods=list(
+    initialize = function(name, age){
+      validate(name, age)
+      .self$name <- name
+      .self$age <- age
+      .self$species <- 'Canis familiaris'
+    },
+    show = function(.self){
+      cat("The dog ", .self$name,
+          " is ", .self$age)
+    },
+    validate = function(name, age){
+      if (!is.character(name)){
+        stop("name must be a character")
+      }
+      if (is.na(name)){
+        stop("name cannot be NA")
+      }
+      if (!is.numeric(age)){
+        stop("age must be a numeric")
+      }
+      if (is.na(age)){
+        stop("age cannot be NA")
+      }
+      if (age<0){
+        stop("age cannot be <0")
+      }
+    },
+    updateAge = function(age){
+      oldAge <- .self$age
+      .self$age <- age
+      return(oldAge)
+    },
+    humanAge = function(){
+      return(.self$age*7)
+    }
+  )
+)
+
+newDog <- Dog(name='Pluto', age = 4)
+newDog$show()
+
+newDog$field('species')
+
+newDog$updateAge(5)
+
+newDog$show()
+
+newDog$humanAge()
+```
+
+The way we define the class and its methods is identical to the way we defined Animals. However, since we used contains, Dog is a subclass of Animals. We can see this from the field species. We did not define species in fields, but we inherited it from Animals.
+
+If we need to call a method from the superclass and resolve name conflicts, we can use the callSuper method.
+
+```{r, eval=TRUE, message=FALSE}
+#define the class
+DogShow <- setRefClass(
+  "DogShow",
+  contains = 'Animals',
+  fields=c(name="character",
+           age = 'numeric'),
+  methods=list(
+    initialize = function(name, age){
+      .self$name <- name
+      .self$age <- age
+      .self$species <- 'Canis familiaris'
+    },
+    show = function(){
+      superClass()
+    }
+  )
+)
+
+newDog <- Dog(name='Pluto', age = 4)
+newDog$show()
+```
+Note how the show method is inherited from Animals, and we call it from Dog using the superClass function.
+
+## RC is mutable
+
+RC objects are mutable. That is, we can modify the object and return a value at the same time. In the Dog example we demonstrated this in the method `updateAge`. This method modifies the object to update the age field. At the same time, it returns the previous age. This is a powerful feature, but we need to be careful. Mutability is not a natural behaviour in R: it can catch developers by surprise. It also makes it more difficult to reason about the effects and behaviours of objects. Limit mutability as much as possible and always separate side effects (modifying an object) from direct returns.
+
+## Built-in methods
+
+RC has several built-in methods. We already saw some of them, like field to access a field, or methods to create new methods for an object.
+
+`copy` is an important built-in method. It highlights a fundamental difference between “standard” R behaviour and RC behaviour. As the name reference implies, when we create a copy of a `ReferenceClass` object we do not create an independent copy, but a referenced one. This means that if we modify one version of the object, we also modify its copy. To make an independent copy, we need to use the copy method.
+
+```{r, eval=TRUE, message=FALSE}
+newAnimal <- Animals$new(species = 'Canis Familiaris')
+newAnimal$show()
+
+# make a copy, the R way
+copyNewAnimal <- newAnimal
+copyNewAnimal$show()
+
+# modify the original
+newAnimal$field('species', 'hello world')
+newAnimal$show()
+
+copyNewAnimal$show() # note that this has been modified
+
+# make a deep copy
+newAnimal <- Animals$new(species = 'Canis Familiaris')
+copyNewAnimal <- newAnimal$copy()
+# modify the original
+newAnimal$field('species', 'hello world')
+newAnimal$show()
+
+copyNewAnimal$show() # note that this has NOT been modified
+```
+
+To an R developer this looks very strange and unexpected. You can anticipate it will create several problems if not used carefully.
+
+Other built-in methods are:
+
+* **new**: used to initialize the object. `newAnimal <- Animals$new()` is equal to `newAnimal <- Animals()`.
+* **help**: provides help documentation.
+* **methods**: creates new methods.
+
+A complete list can be found on the [RC documentation page](https://www.rdocumentation.org/packages/methods/versions/3.6.2/topics/ReferenceClasses).
+
+## Wrap up
+
+RC objects are appealing to developers familiar with OO in other languages. RC provides support to familiar patterns and concepts, for instance encapsulation. However, it uses mechanisms like mutability that are not familiar to the R language. These mechanisms can make the code harder to read and maintain for R developers.
+
+Furthermore, RC is poorly documented: all of its documentation is in [this page](https://www.rdocumentation.org/packages/methods/versions/3.6.2/topics/ReferenceClasses). RC is also slower than R6, which is based on the same principles.
+
+Finally a note on private methods. In RC there is no (easy) way to create private methods or fields. If you search stackoverflow hard enough you will find some workarounds, but they are just that: workarounds.
+
+For all these reasons, it is difficult to recommend RC in any instance. If you need the added complexity of RC mutability and encapsulation, use R6 instead. The only case when you want to consider RC is when you work on legacy code and RC is already used.
+
+# R6
+
+R6 is another implementation of encapsulated OO. It is not part of base R and you will need to install the R6 package. R6 shares many functionalities with RC, but it is based on S3, rather than S4.
+
+Let’s have a look at how we can write the Animals class.
+
+```{r, eval=TRUE, message=FALSE}
+library(R6)
+# define class
+Animals <- R6Class(
+  'Animals',
+  # public methods
+  public = list(
+    species = NULL,
+    initialize = function(species){
+      private$validate(species)
+      self$species <- private$formatSpecies(species)
+    },
+    print = function(){
+      cat("Object of class 'Animals'. The species is ",
+          self$species)
+    }
+  ),
+  # private methods
+  private = list(
+    validate = function(species){
+      if (!is.character(species)){
+        stop("species must be a character")
+      }
+      if (is.na(species)){
+        stop("species cannot be NA")
+      }
+      if (!stringr::str_detect(species, '[a-z, A-Z] [a-z,A-Z]')){
+        stop("species must contain genus and species separated by a single space.")
+      }
+    },
+    formatSpecies = function(species){
+      return(stringr::str_to_sentence(species))
+    }
+  )
+)
+
+# create the class
+newAnimal <- Animals$new(species='Canis Familiaris')
+# print
+newAnimal$print()
+```
+
+R6 supports private methods and fields through the argument private. You can access private methods and fields from the public methods using the private$ notation, as illustrated in the initialize method above.
+
+## Piping
+
+R6 supports "piping". Similarly to how you would pipe `dplyr` or `recipe` verbs, you can pipe R6 methods using the `$` operator.
+
+```{r, eval=TRUE, message=FALSE}
+# piping
+newAnimal <- Animals$new(species='Canis Familiaris')$print()
+```
+
+## Inheritance
+
+R6 inheritance requires the use of the inherit argument in the class definition.
+
+```{r, eval=TRUE, message=FALSE}
+Dog <- R6Class(
+  'Dog',
+  inherit = Animals,
+  public = list(
+    name = NULL,
+    age = NULL,
+    initialize = function(name, age){
+      private$validate(name, age)
+      self$species <- 'Canis familiaris'
+      self$age <- age
+      self$name <- name
+    },
+    print = function(){
+      cat("The dog ", self$name,
+          " is ", self$age)
+    },
+    updateAge = function(age){
+      oldAge <- self$age
+      self$age <- age
+      return(oldAge)
+    },
+    humanAge = function(){
+      return(self$age * private$dog_human_age_ratio)
+    }
+  ),
+  private = list(
+    dog_human_age_ratio = 7,
+    validate = function(name, age){
+      if (!is.character(name)){
+        stop("name must be a character")
+      }
+      if (is.na(name)){
+        stop("name cannot be NA")
+      }
+      if (!is.numeric(age)){
+        stop("age must be a numeric")
+      }
+      if (is.na(age)){
+        stop("age cannot be NA")
+      }
+      if (age<0){
+        stop("age cannot be <0")
+      }
+    },
+    formatSpecies = function(species){
+      return(stringr::str_to_sentence(species))
+    }
+  )
+)
+
+# usage
+# create new object
+newDog <- Dog$new(name='Pluto', age=4)
+newDog$print()
+
+newDog$humanAge()
+
+newDog$updateAge(5)
+
+newDog$print()
+```
+
+We can access both public and private attributes of the superclass using super, as demonstrated in the example below.
+
+```{r, eval=TRUE, message=FALSE}
+DogShow <- R6Class(
+  "DogShow",
+  inherit = Animals,
+  public = list(
+    name=NULL,
+    age=NULL,
+    initialize = function(name, age){
+      self$name <- name
+      self$age <- age
+      self$species <- 'Canis familaris'
+    },
+    # call the superclass method
+    print = function(){
+      super$print()
+    }
+  )
+)
+                   
+newDog <- DogShow$new(name='Pluto', age=4)
+newDog$print()
+```
+
+## R6 is mutable
+
+R6 objects are mutable, and as for RC we demonstrated this with the updateAge method.
+
+Remember that mutability is not a normal R behaviour. If you can master it, it is not guaranteed that your team members can as well, so plan to document it very well. Your goal is to create code that is easier to work with, not to show off with something no one else can understand.
+
+## Built-in methods
+
+R6 objects have built-in methods. The most notable one is `clone`. `clone` allows you to create deep copies of the object.
+
+## Wrap up
+
+RC and R6 are both familiar to traditional OO developers. RC and R6 syntaxes and feature-sets are similar. One of the key differences is that R6 has native support for private methods.
+
+There are two key differences between RC and R6: performance and documentation. R6 performs better than RC, this is one of the reasons why Shiny switched from RC to R6. As for documentation, R6 is better documented than RC.
+
+# Object oriented in R: final wrap up
+
+R is a functional language. Yet, R supports object oriented programming. The native R object oriented is of the functional type. In this implementation, methods belong to a function (the generic), rather than to a class. Different classes can plug in new methods to existing generics. This type of classes are not defined formally, and may look very strange to non-R developers.
+
+R has two types of functional OO: S3 and S4. S3 are well documented and are embedded in base R. Functions like print or summary are in fact S3 generics. We can create new S3 classes and take advantage of these existing generics. All we have to do is to write new methods. This will be very natural to R developers. Also, the resulting syntax will use common R verbs.
+
+S4 is more complex than S3. They are formally defined and this added rigidity can ease work in larger teams. This is one of the main reasons why S4 is the backbone of the BioConductor project.
+
+If you need “traditional” encapsulated object oriented, then you can use RC or R6. R6 even supports private attributes. The downside of RC and R6 is that they have properties that are not standard to R, such as mutability and shallow copies. These features can cause confusion to other team members that are not familiar with them. Remember that you work in a team and you must aim to deliver the best possible solution. This is the solution that everybody can understand and maintain, and not the most technically advanced one.
+
+When I work with objects, I tend to work with a combination of S3, S4, and only in minor part R6. I use S4 or R6 for classes exposed to the user and S3 for internal methods. In this way I can leverage a formal definition of the interface on the outside layer of the application. At the same time, I can use the flexibility of S3 when I don’t have to worry about external inputs. I use R6 only when I have to work with non-R developers who are familiar with OO. They tend to find R6 comfortable to work on, while they start to grasp S3 and S4 concepts as well.
+
+Below is a quick reference table to help you define your R’s OO strategy.
+
+| Type of object oriented         | S3        | S4               | RC                   | R6                            |
+|----------------------------------|-----------|------------------|----------------------|-------------------------------|
+| Familiar to the average R developer | Yes       | In part          | No                   | No                            |
+| Formally defined                | No        | Yes              | Yes                  | Yes                           |
+| Mutable                         | No        | No               | Yes                  | Yes                           |
+| Shallow/Deep copy (reference semantics) | Only deep | Only deep        | Yes                  | Yes                           |
+| Documentation                   | Great     | Good             | Poor                 | Good                          |
+| Speed                           | Fast      | Fast             | Slower               | Fast                          |
+| Included in base R              | Yes       | Yes              | Yes                  | No                            |
+| Supports inheritance            | Yes, but needs to be planned even in the superclass | Yes | Yes | Yes |
+| Generally recommended           | Yes, it is the native OO in R, and it forces you to simplify your code | Yes, in larger teams | Only if it is already used | Only for very experienced R teams |
+
+I hope you found this quick guide to object oriented in R useful. Subscribe and follow if you want to get more tips on how to improve your coding.

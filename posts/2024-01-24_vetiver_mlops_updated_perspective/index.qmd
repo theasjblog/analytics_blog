@@ -1,0 +1,58 @@
+---
+title: "Vetiver for MLOps: An Updated Perspective and Cautionary Note"
+description: "A review of my vetiver for MLOps article series."
+date: "2024-01-24"
+categories: ["mlops"]
+image: https://cdn-images-1.medium.com/max/800/1*OEWOPNWC8vt5G0TJjnaWww.jpeg
+---
+![Image by the author.](https://cdn-images-1.medium.com/max/800/1*OEWOPNWC8vt5G0TJjnaWww.jpeg)
+
+I previously authored a series of articles on the usage of `vetiver` for MLOps.
+
+Fast forward a few months, fortified with professional hands-on experience, I decided to revisit my opinions. Do I still stand by my initial recommendations and caveats?
+
+I will examine these key aspects:
+
+- Do I endorse my technical approach?
+- Is `vetiver` a good fit for a professional, heavily regulated setting?
+- Can `vetiver` scale?
+
+### Do I endorse my technical implementation?
+
+Mostly yes, but I would reconsider the `vetiver` API. In my initial article, I dismissed the `vetiver` template as overly simplistic. Upon reflection, I would retain the template and employ programmatic plumber to embed it into an entry point with hooks and filters for log creation. This entry point file could also act as a reusable template for all the `vetiver` APIs the team needs to roll out.
+
+In this way, we can keep the excellent layout and collection of endpoints provided by `vetiver`, while adding much needed features like logging.
+
+### Is vetiver apt for a professional, highly regulated environment?
+
+`vetiver` is quite robust. It promotes beneficial practices like thorough model documentation and autonomous model development. It facilitates straightforward model auditing and governance via a dedicated pins board that supports version control.
+
+However, compared to mature, specialized MLOps platforms, `vetiver` has its constraints, particularly regarding live tracking, alerting, and ease of exploring models and their metadata. Crafting elaborate Shiny dashboards to make up for these shortfalls demands skill and time, which not all organizations have. Commercial solutions typically offer these features out of the box, making them more attractive.
+
+I continue to advocate `vetiver` for situations involving smaller teams working on prototypes, research units, or circumstances with less regulatory scrutiny. The strong point of `vetiver` is that it allows for a satisfactory MLOps workflow at zero additional expense.
+
+### Does vetiver scale?
+
+The primary challenges here are response time and server load.
+
+**Response time**
+
+`vetiver` architecture promotes deploying several small `vetiver` APIs that can be contacted by any service requiring predictions. A more naive approach would embed the model objects directly into other services so that predictions can be obtained directly. In a way, `vetiver` promotes a microservices approach, while a naive solution would resemble a monolithic application.
+
+While the `vetiver` approach keeps APIs compact, it may amplify lag time as other solutions have to reach out to one or more `vetiver` APIs via tools like `curl` or `httr`. Consequently, the issue of maintaining a low overall response time arises. Thankfully, if our code is efficiently written and we use packages like `future` to issue requests to `vetiver` APIs concurrently, the time penalty is minimal. Of course, this will also depend on your organization's network setup.
+
+**Server load**
+
+Let us assume we deploy to Posit Connect, but even if we do not, similar considerations will still hold.
+
+Launching an empty `plumber` API with no endpoint uses about 110 MB of RAM just to get the R session operational. While not exorbitant, as we load additional libraries and a model object, memory usage can increase substantially.
+
+Model objects' RAM footprint varies greatly depending on the type of model and the ability of the modeller to trim them. Note that `vetiver` will call `butcher` when you create the `vetiver` model, but this is not always enough. For this example, let us consider a model using 50 MB of RAM. Add `tidymodels`, which can consume around 150 MB of RAM. So a basic model plus `tidymodels` plus base R will use approximately 300 MB of RAM. If you have numerous models and other applications running on your server, you may quickly deplete your memory. This is another reason why I believe `vetiver` is more fitting for small team scenarios with a limited array of deployed products.
+
+We can counter this by diligently trimming our models. We should also be cautious about the libraries we load into memory, eliminating any unnecessary ones, and refrain from importing meta-packages such as `tidymodels` or `tidyverse` directly. Instead, we should import only the specific dependencies that we need, such as `dplyr`, `recipes`, and so on.
+
+### Conclusion
+
+`vetiver` has proven to be a valuable tool in certain settings, particularly for small teams working on prototypes or in less regulated environments. Its robustness and ability to promote beneficial practices are noteworthy. However, it is important to be mindful of its limitations, especially regarding monitoring and RAM usage.
+
+While `vetiver` might not be suitable for all situations, in the right context, it can provide a robust and cost-effective MLOps workflow.

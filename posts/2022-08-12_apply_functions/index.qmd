@@ -1,0 +1,561 @@
+---
+title: "Everything you want to know about the R apply functions"
+description: "Use cases, examples, benchmarking."
+date: "2022-08-21"
+categories: [r, apply]
+---
+![](img/cover.png)
+
+## What is the apply family?
+
+`for` loops are the joy and the curse of any developer. They are instinctive to write, as they are a direct representation of how we think. “Go over this vector and apply this function to each column” becomes `for (i in myVec){myFun(i)}`. Yet, `for` loops are inefficient and ugly. Being ugly is not just an aesthetic problem: it is a readability and maintainability problem.
+
+So how can we drop for loops, or at least most of them? How can we make our code faster and more readable?
+
+Enter the apply family.
+
+The apply family is part of base R. No need to install any extra package to use them. The apply functions simplify applying a set of operations to vectors, data frames, matrices, or lists. And of course, apply functions are significantly faster than a for loop.
+
+The apply family has several members:
+
+* apply
+* lapply
+* tapply
+* mapply
+* vapply
+* sapply
+* replicate
+
+Let’s have a look at all of them in detail. I will give you examples, use cases, and benchmarking. I will also talk about limitations and why you should be avoiding some of them.
+
+## apply
+
+`apply` works with data frames or matrices, but not vectors or lists. The normal use case for this function is when you have tabular data, and you want to apply some operation across all rows or all columns. Its syntax is:
+
+`apply(X, MARGIN, FUN, …, simplify = TRUE)`
+
+Where:
+* **X**. The input data.
+* **MARGIN**. Apply the function FUN to rows (MARGIN=1) or columns (MARGIN=2).
+* **FUN**. It is the function apply uses across rows or columns.
+* **simplify**. In most cases it forces the results to be a list, if TRUE. We will see more examples later.
+
+### apply examples
+
+```{r, echo=TRUE}
+# the data frame
+myDf <- data.frame(item1=c(1,2),
+                   item2=c(3,4),
+                   item3=c(5,6))
+                   
+# apply the function mean across rows
+apply(X = myDf, MARGIN = 1, FUN = mean)
+
+# apply the function mean across columns
+apply(X = myDf, MARGIN = 2, FUN = mean)
+```
+
+In both cases, the input is a data frame, but the output is a numeric vector. In the second example, the output is a named numeric vector because the columns in the data frame have names.
+
+### Using a custom function
+
+```{r, echo=TRUE}
+# the data frame
+myDf <- data.frame(item1=c(1,2),
+                   item2=c(3,4),
+                   item3=c(5,6))
+
+# custom function
+myFun <- function(d){
+  return(d^2)
+}
+
+apply(myDf, 1, myFun)
+```
+
+
+This time our output is a matrix. This is because the function `myFun` is not aggregating data as the function `mean` did.
+
+We could use a one-liner by replacing `myFun` inside the `apply` call with its definition. I advise against that. Declaring `myFun` separately enables testing that is independent from the apply function.
+
+### The simplify argument
+
+The output of the apply function can be a matrix of a vector, with dimensions derived from a combination of the input class and dimension, and output of the FUN function. Using an aggregation function as mean over a list with three elements returns a vector of length three. We can force apply to always return a list by setting `simplify=FALSE`.
+
+```{r, echo=TRUE}
+# the data frame
+myDf <- data.frame(item1=c(1,2),
+                   item2=c(3,4),
+                   item3=c(5,6))
+
+apply(myDf, 2, mean, simplify=TRUE)
+
+
+apply(myDf, 2, mean, simplify=FALSE)
+```
+
+In the first example (`simplify=TRUE`) the output is a vector, in the second (`simplify=FALSE`) it is a list. The default behaviour is `simplify=TRUE`.
+
+### Benchmarking apply
+
+```{r, echo=TRUE, warning=FALSE}
+library(microbenchmark)
+
+# prepare data
+n <- 1e1
+myDf <- as.data.frame(lapply(seq(n), function(d){runif(n)}))
+myFun <- function(d){d^2}
+
+# apply across rows
+summary(microbenchmark(
+  res <- apply(myDf, 1, myFun), unit='microseconds'
+))$mean
+
+# for loop across rows
+res <- matrix(nrow=n, ncol=n)
+summary(microbenchmark(
+  for (i in 1:n){
+    res[i,] <- myFun(as.numeric(myDf[i,]^2))
+  }, unit='microseconds'
+))$mean
+
+# apply across columns
+summary(microbenchmark(
+  apply(myDf, 2, myFun), unit='microseconds'
+))$mean
+
+# for loop across columns
+res <- matrix(nrow=n, ncol=n)
+summary(microbenchmark(
+  for (i in 1:3){
+    res[,i] <- myFun(as.numeric(myDf[,i]^2))
+  }, unit='microseconds'
+))$mean
+```
+
+
+As we can see, `apply` is orders of magnitude faster than a `for` loop.
+
+### apply considerations
+
+The output of `apply` is not guaranteed. It depends on the size and type of the input, and on the output of FUN. Having an unreliable output makes the function not recommendable to build software. We would need to add several validations to check that the input and the output are what we expect. At the very least, we would have to remember to set `simplify=FALSE`.
+
+## lapply
+
+`lapply` is a very versatile function. It works on lists, data frames, and vectors. Its syntax is:
+
+`lapply(X, FUN, …)`
+
+### lapply examples
+
+```{r, echo=TRUE}
+# prepare data
+myLs <- list(a = seq(5,8),
+             b = seq(2,4))
+myDf <- data.frame(item1=c(1,2),
+                   item2=c(3,4),
+                   item3=c(5,6))
+myVc <- seq(1,3)
+
+# lapply on lists
+lapply(myLs, exp)
+
+# lapply on data frames
+lapply(myDf, exp)
+
+# lapply on vectors
+lapply(myVc, exp)
+```
+
+Note how the output is always a list, regardless of the input.
+
+### Benchmarking lapply
+
+```{r, echo=TRUE}
+library(microbenchmark)
+# prepare the data
+n <- 1e1
+myLs <- lapply(seq(1,n), function(d){runif(n)})
+myDf <- as.data.frame(lapply(seq(1,n), function(d){runif(n)}))
+
+######################
+# lapply vs for loop #
+######################
+# lapply on lists
+summary(microbenchmark(
+  res <- lapply(myLs, exp), unit='microseconds'
+))$mean
+
+# for loop on lists
+res <- list()
+summary(microbenchmark(
+  for(i in 1:n){
+    res[[i]] <- exp(myLs[[i]])
+  }, unit='microseconds'
+))$mean
+
+# lapply on data frame
+summary(microbenchmark(
+  res <- lapply(myDf, exp), unit='microseconds'
+))$mean
+
+# for loop on data frame
+res <- list()
+summary(microbenchmark(
+  for(i in 1:n){
+    res[[i]] <- exp(myLs[[i]])
+  }, unit='microseconds'
+))$mean
+
+###################
+# apply vs lapply #
+###################
+# apply
+summary(microbenchmark(
+  apply(myDf, 2, FUN=exp, simplify = FALSE), unit='microseconds'
+))$mean
+
+# lapply
+summary(microbenchmark(
+  lapply(myDf, exp), unit='microseconds'
+))$mean
+## [1] 3.46655
+```
+
+
+`lapply` is significantly faster than both the `for` loop and the `apply` function.
+
+### lapply considerations
+
+I use `lapply` very often. One thing that I particularly like is that I know that the output will be a list. We could use `apply` with `simplify=FALSE`, but, as we saw, it is slower than `lapply`. Furthermore, `apply` does not work on lists.
+
+## tapply
+
+`tapply` creates grouped summaries, where the groups are given by factors. Its syntax is:
+
+`tapply(X, INDEX, FUN=NULL, …, default=NA, simplify=TRUE)`
+
+Where:
+
+* **INDEX**. These are the factors. It has the same length of X.
+* **default**. It is the default output of FUN if no value is present for a given factor.
+
+### tapply examples
+
+```{r, echo=FALSE}
+# In this first example we have two sellers, Jane and Joe.
+# We have data of sales for both of them. Who has the highest sales total?
+sales <- sample(seq(10, 20), 100, replace = TRUE)
+seller <- sample(c('Joe', 'Jane'), 100, replace = TRUE)
+tapply(sales, seller, sum)
+
+# Now suppose we have a new seller: Mark. He does not have any sale yet.
+sales <- sample(seq(10, 20), 100, replace = TRUE)
+seller <- factor(sample(c('Joe', 'Jane'), 100, replace = TRUE),
+                 levels = c('Joe', 'Jane', 'Mark'))
+tapply(sales, seller, sum)
+
+# Mark output is NA. We might prefer to report that has 0 instead. 
+# We can use the default argument for that.
+tapply(sales, seller, sum, default=0)
+```
+
+### Benchmarking tapply
+
+```{r, echo=TRUE, warning=FALSE,message=FALSE}
+library(microbenchmark)
+library(dplyr)
+# prepare the data
+n <- 1e3
+sales <- sample(seq(10, 20), n, replace = TRUE)
+seller <- factor(sample(LETTERS, n, replace = TRUE))
+myDf <- data.frame(sales = sales, seller = seller)
+
+#######################
+# tapply  vs for loop #
+#######################
+# tapply
+summary(microbenchmark(
+  tapply(sales, seller, sum, default=0), unit='microseconds'
+))$mean
+
+# for loop
+summary(microbenchmark(
+  for(i in levels(seller)){
+    sum(sales[seller==i])
+  }, unit='microseconds'
+))$mean
+
+#############################################
+# tapply  vs for dplyr                      #
+#                                           #
+# Of course the above method is quite crude.#
+# A better way to summarize would leverage  #
+# dplyr machinery instead.                  #
+#############################################
+# tapply
+summary(microbenchmark(
+  tapply(sales, seller, sum, default=0), unit='microseconds'
+))$mean
+
+# dplyr
+summary(microbenchmark(
+  myDf %>% group_by(seller) %>% summarize(sum(sales)), unit='microseconds'
+))$mean
+```
+
+`tapply` is faster than a `for` loop. What is perhaps surprising is that, at least in our example, `tapply` is also faster than `dplyr`. This shows the importance of profiling our code.
+
+Interestingly, `dplyr` is also slower than a `for` loop. However, one thing to consider is code readability. The `dplyr` syntax is much cleaner and easier to understand than the for loop.
+
+One important note on the difference between `dplyr` and `tapply`: if a factor has no data, `dplyr` will not give us its summary.
+
+```{r, echo=TRUE}
+# The seller 'Mark' has no sales. Mark is a level in the seller vector, 
+# but he has no data entry.
+sales <- sample(seq(10, 20), 100, replace = TRUE)
+seller <- factor(sample(c('Joe', 'Jane'), 100, replace = TRUE), 
+                 levels = c('Joe', 'Jane', 'Mark'))
+df <- data.frame(sales = sales, seller = seller)
+
+tapply(sales, seller, sum, default=0)
+
+df %>% 
+  group_by(seller) %>% 
+  summarize(sum(sales))
+```
+
+“Mark” is not present in the `dplyr` results, but he is in the `tapply` results.
+
+### tapply considerations
+
+`tapply` is a convenient and fast alternative to `dplyr` when we need to summarize data by factors. If we are concerned about controlling `tapply` output’s class, we can set `simplify=FALSE`.
+
+## sapply
+
+`sapply` is a wrapper of `lapply`. Its syntax is:
+
+`sapply(X, FUN, …, simplify=TRUE, USE.NAMES=TRUE)`
+
+In particular, `sapply(X, FUN, simplify=FALSE, USE.NAMES=FALSE)` is equivalent to `lapply(X, FUN)`.
+
+### Comparison between sapply and lapply
+
+```{r, echo=TRUE}
+# prepare data
+# in this list a and b have equal length
+myLsSame <- list(a = seq(1,5),
+                 b = seq(6,10))
+# in this list a and have different length
+myLsDifferent <- list(a = seq(1,5),
+                      b = seq(1,3))
+myDf <- data.frame(a = seq(1,5),
+                  b = seq(6,10))
+
+###########################
+# on lists of same lenght #
+###########################
+# sapply
+sapply(myLsSame, exp)
+
+# lapply
+lapply(myLsSame, exp)
+
+################################
+# on lists of different lenght #
+################################
+# sapply
+sapply(myLsDifferent, exp)
+
+# lapply
+lapply(myLsDifferent, exp)
+
+##################
+# on data frames #
+##################
+# sapply
+sapply(myDf, exp)
+
+# sapply, but setting simplify=FALSE
+sapply(myDf, exp, simplify = FALSE)
+
+# lapply
+lapply(myDf, exp)
+```
+
+
+Let’s unpack the above. `lapply` is consistent. Whether it is processing a `data frame` or a `list`, it returns a `list`. `sapply` is all over the place. If it processes a `data frame` or a `list` where all elements have the same length, then it will return a `matrix`. Unless we specify `simplify=FALSE`, which causes it to return a `list`. On the other hand, if the input is a `list` where the elements have different lengths, then it will return a `list`.
+
+### Benchmarking sapply
+
+```{r, echo=TRUE}
+library(microbenchmark)
+# prepare data
+n <- 1e3
+myLs <- lapply(seq(1,n), function(d){runif(n)})
+
+# sapply, simplify=FALSE
+summary(microbenchmark(
+  sapply(myLs, exp, simplify = FALSE), unit='microseconds'
+))$mean
+
+# sapply, simplify=TRUE
+summary(microbenchmark(
+  sapply(myLs, exp, simplify = TRUE), unit='microseconds'
+))$mean
+
+# lapply
+summary(microbenchmark(
+  lapply(myLs, exp), unit='microseconds'
+))$mean
+```
+
+`sapply` is slow when we use `simplify=TRUE`. `lapply` is faster than `sapply` when `simplify=FALSE`.
+
+### sapply considerations
+
+I do not recommend `sapply`. Its performance is almost identical to `lapply`, but worse, and its lack of full control over the output can cause problems.
+
+## vapply
+
+It is a safer version of `sapply`, as its output is controlled. Its syntax is:
+
+`vapply(X, FUN, FUN.VALUE, …, USE.NAMES=TRUE)`
+
+Where:
+
+* **FUN.VALUE**. This argument describes the output of FUN. This is what gives great control over the behaviour of vapply. We’ll see what this means in the examples below.
+
+### vapply examples
+
+```{r, echo=TRUE}
+# prepare data
+myDf <- data.frame(a = seq(1,5),
+                   b = seq(6,10))
+# length(a) == length(b)
+myLsSame <- list(a = seq(1,5),
+                 b = seq(6,10))
+# length(a) != length(b)
+myLsDifferent <- list(a = seq(1,10),
+                      b = seq(6,10))
+             
+# vapply on data frames
+vapply(myDf, exp, rep(double(1),5))
+
+# Note that the function exp returns a double, so we use 
+# double(1) for FUN.VALUE. Also, the data frame columns 
+# have 5 rows, so FUN will return 5 doubles. Hence, 
+# the complete declaration of FUN.VALUE must repeat double(1)
+# 5 times: rep(double(1), 5)
+
+# vapply on lists of same length
+vapply(myLsSame, exp, rep(double(1),5))
+
+# vapply on lists of different length
+tryCatch({
+  vapply(myLsDifferent, exp, rep(double(1), 10))
+},
+error = function(msg){msg})
+```
+
+`vapply` fails when the elements in the list have different lengths. This is because FUN.VALUE cannot deal with changing outputs of FUN.
+
+### Benchmarking vapply
+
+```{r, echo=TRUE}
+library(microbenchmark)
+# prepare the data
+n <- 1e3
+myLs <- lapply(seq(1,n), function(d){runif(n)})
+
+# vapply
+summary(microbenchmark(
+  vapply(myLs, exp, FUN.VALUE = rep(double(1), n)), unit='microseconds'
+))$mean
+
+# sapply
+summary(microbenchmark(
+  sapply(myLs, exp, simplify = FALSE), unit='microseconds'
+))$mean
+
+# lapply
+summary(microbenchmark(
+  lapply(myLs, exp), unit='microseconds'
+))$mean
+```
+
+
+`lapply` is the faster option, followed by `sapply` and `vapply`.
+
+### vapply considerations
+
+`vapply` is a good alternative to `lapply` when you need to be absolutely sure about the input and the output, even at the expense of performance. If you need more flexibility, for instance because you cannot expect all items in the list to have the same length, then use `lapply` instead.
+
+## mapply
+
+`mapply` is yet another version of sapply. It is its multivariate implementation. `mapply` syntax is:
+
+`mapply(FUN, …, MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE)`
+
+### mapply examples
+
+```{r, echo=TRUE}
+# create lists
+mapply(rep, times = 1:4, x = 4:1)
+
+# times and x are arguments to the rep function. 
+# mapply is taking the first element in x (4), 
+# and it applies rep the first element of times: rep(4, 1). 
+#It then moves to the second elements of x and 
+# times: rep(3, 2), and so on.
+
+mapply(rep, times = 1:4, MoreArgs = list(x = 42))
+
+# As above, but this time we repeat the number 42 for the specified times.
+
+myFun <- function(x, y){seq_len(x) + y}
+mapply(myFun,
+       c(it1 =  1, it2 = 2, it3 = 3),
+       c(it1 = 10, it2 = 0, it3 = -10))
+
+# In this case, at the first iteration we take the first 
+# element of the first vector as x, and the first element 
+# of the second vector (10) as y. We then repat for all 
+# three elements in the vectors.
+
+# operations across vectors
+v1 <- sample(seq(1,10), 5)
+v2 <- sample(seq(1,10), 5)
+mapply(max, v1, v2)
+
+mapply(function(x,y){x+y}, v1, v2)
+
+# create matrices
+mapply(rep, rep(NA, 3), times=5)
+```
+
+## replicate
+
+Another `sapply` wrapper. replicate allows for repeated evaluation of an expression. Its syntax is:
+
+`replicate(n, expr, simplify = "array")`
+
+### replicate examples
+
+```{r, echo=TRUE}
+replicate(5, mean(rexp(10)))
+
+#Note how this is different from rep:
+rep(mean(rexp(10)), 5)
+
+# With replicate we generate a random number 5 times, 
+# with rep we generate a random number once, then repeat it 5 times.
+```
+
+## Wrap up
+
+The apply family is a fairly large one. It offers several options to handle different data structures, and we can be more or less flexible on our output.
+
+I hope this overview of the apply family gave you some ideas on how to improve your code and remove some for loops.
+
+Below, I have included a table to help you decide which function you should use in different scenarios.

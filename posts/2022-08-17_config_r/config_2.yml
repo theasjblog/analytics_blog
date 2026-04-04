@@ -1,0 +1,8 @@
+default:
+  runParallel: FALSE
+  nRuns: 10
+  thisIsACommonVariable: hello
+production:
+  runParallel: TRUE
+  nRuns: 100
+  

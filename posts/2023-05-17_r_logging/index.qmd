@@ -1,0 +1,238 @@
+---
+title: "An introduction to logging with examples in R"
+description: "Fundamental rules to define a logging strategy."
+date: "2023-05-17"
+categories: ["r"]
+---
+![Photo by Ibrahim Boran Unsplash.](./img/cover.jpg)
+
+
+### What you will learn
+
+You will get an understanding of the principles of application logging and you will see some best practices applied to the R language.
+
+### Introduction
+
+Logging is a vital part of any application. From dashboards to API, from bash scripts to predictive models, everything should create logs. But what should we use to write logs? And what should we log?
+
+Let’s start by looking the purpose of logs.
+
+### Logs purpose
+
+We can identify two main type of logs: technical logs and business logs.
+
+### Technical information
+
+Technical logs are a developer tool. They are needed to help developers monitor and quickly debug their applications. These logs are useful only if they enable a quick response. Technical logs include:
+
+*   Execution time.
+*   Steps executed by the application.
+*   Error messages.
+*   Metadata such as version number, environment information, etc.
+
+### Business logs
+
+This category of logs are often overlooked by developers. The input os business-side stakeholders is needed to capture business logs properly.
+
+With business logs we capture metrics that allows the business, not the developers, to assess the value of the application.
+
+The business metrics you must capture depends on the use case, but they might include:
+
+*   A model input and output.
+*   The click rate of specific buttons. For example a promotion button AND a buy button on an e-commerce website, so that we can calculate the efficacy of a campaign.
+
+We are ready to get coding now. Let’s have a look at our options for logging.
+
+### Logging options
+
+There are two main options used to log informations from an applications: print to console or use a dedicate library.
+
+### Print to console
+
+This is the first form of logging many developers encounter: `print` or `cat`.
+
+This approach might work while developing small applications locally, but it quickly gets out of hand.
+
+Statements that are only printed out to the console are rarely useful and reachable outside the dev session. What if we need to find a log entry from three days ago? How do we “browse” the console history?
+
+Print to console should not be considered a viable logging option.
+
+### Dedicated libraries
+
+Virtually any programming language has dedicated logging libraries. In Python, the most used one is conveniently called `logging`. In R we can use `log4r`, `logging`, or `futile.logger`.
+
+I recommend you spend some time exploring those options and pick the one you are more comfortable with.
+
+### Best practices
+
+At this point we know why we log, what to log, and what to use to log. It is time to look at some R code to consider some general good practices. I will use the `log4r` library simply because it is the one I am most familiar with, but identical results can be obtained with `logging` or `futile.logger`.
+
+### Consistency
+
+Consistent logs are easier to parse. If every time you write a solution, you use a different way of logging, then you will also need a different way to consume the logs. This will at least double your workload. Using a single logging framework will make sure everything is consistent across applications. For example:
+
+```{r, eval=FALSE}
+library(log4r)
+
+log\_obj <- create.logger(logfile = here::here('logs', "test.log"),  
+                         level = "DEBUG")
+
+info(log\_obj, 'info message')  
+debug(log\_obj, 'debug message')  
+error(log\_obj, 'error mssage')
+```
+
+Will produce this output:
+
+```
+INFO  \[2023-04-26 19:51:30\] info message  
+DEBUG \[2023-04-26 19:51:30\] debug message  
+ERROR \[2023-04-26 19:51:31\] error mssage
+```
+
+Having this consistent format is extremely important.
+
+### Format
+
+We know our logs should be consistent, but what format should they have? Plain text `.log` files? `.csv`? Or maybe `.json`?
+
+Having `.log` files with the content organized as we saw in the previous section is a _de facto_ standard, and there is nothing wrong with that.
+
+However, I recently started to leverage more and more the `.json` format. The reason is that logs created as JSON are extremely easy to parse by any application, no regex gymnastic involved.
+
+Using `log4r` as an example, you could do something like this:
+
+```{r, eval=FALSE}
+library(here)  
+library(log4r)  
+library(jsonlite)
+
+# define the path to the logging file  
+log_file_path <- here::here('logs', "test.log")  
+
+# define the layout of the logs  
+# start by creating a list, then convert the list to   
+# JSON with jsonlite  
+my_layout <- function(level, sessionID, message) {    
+  tmpList <- list(level = level,  
+                  timestamp = Sys.time(),  
+                  sessionID = sessionID,  
+                  message = message)  
+  return(paste0(jsonlite::toJSON(tmpList, auto_unbox = TRUE),  
+                '\n'))# adding \n for human readability  
+}
+
+# create the log onject  
+log_obj <- create.logger(logfile = log_file_path,  
+                         level = "DEBUG")  
+# append the custom layout  
+log_obj <- logger(appenders = file_appender(file = log_file_path,  
+                                            layout = my_layout))
+
+info(log_obj, '1234', 'info message')  
+info(log_obj, '5678', 'another info message')
+```
+
+The output is something like this:
+
+```{JSON}
+{"level":"INFO","timestamp":"2023-04-26 19:59:07","sessionID":"1234","message":"info message"}  
+{"level":"INFO","timestamp":"2023-04-26 20:03:57","sessionID":"5678","message":"another info message"}
+```
+
+This file will be extremely easy to parse by any tool in any language.
+
+### Meaningful
+
+Many developers fails to create meaningful log messages. Often the messages created make sense while you are working on the app, but a few months after you moved to a different project you will not be able to remember what that messages mean.
+
+Similarly, some developers just log the application error _as is_. The problem with this approach is that some libraries produces very cryptic messages. Adding some information and context will be very helpful.
+
+Let’s consider this example:
+
+```{r, eval=FALSE}
+library(dplyr)  
+library(log4r)  
+library(here)  
+library(jsonlite)
+
+log_file_path <- here::here('logs', "test.log")  
+my_layout <- function(level, message) {  
+  tmpList <- list(level = level,  
+                  timestamp = Sys.time(),  
+                  message = message)  
+  paste0(jsonlite::toJSON(tmpList, auto_unbox = TRUE),  
+         '\n')}
+
+log_obj <- create.logger(logfile = log_file_path,  
+                         level = "DEBUG")
+
+log_obj <- logger(appenders = file_appender(file = log_file_path,  
+                                            layout = my_layout))
+
+tryCatch({  
+  mtcars %>%  
+    select(hello)},   
+  error = function(e){  
+    error(log_obj, as.character(e))  
+})
+```
+Which produces:
+
+```{JSON}
+{"level":"ERROR","timestamp":"2023-04-26 20:17:20","message":"[Error in `select()`: Can't subset columns that don't exist. Column `hello` doesn't exist."}
+```
+
+This is not a bad starting point, but we can do better. We are capturing the essence of the message, but we are not giving any context. For example, which parts of the code actually originated this error? We can improve the message by working on the `tryCatch`:
+
+```{r, eval=FALSE}
+tryCatch({  
+  mtcars %>%  
+    select(hello)},   
+  error = function(e){  
+		error(log_obj, 'function my_custom_function generated this error')  
+    error(log_obj, as.character(e))  
+})
+```
+
+We are now providing context to the person that will need to debug this error. They will know exactly which part of the code base they should search. Always remember: the log entry must help a developer to debug the problem as quickly as possible. The more information you have, the better.
+
+### File size
+
+Generally speaking, there are two approaches to creating logs: store every user session as an individual log file, or create a single log file, let’s say a daily one, and append to this file all the logs for that day. Which approach should we use? We need to consider our specific use case.
+
+Logging every session to its own file can create many files. You log-consumption process must be able to handle this scenario.
+
+On the other hand, using a single log file can create conflicts if multiple sessions try to write to the same file at the same time. There is also higher risk of losing information if the file gets corrupted.
+
+You will need to find the best solution that works for you. Keep in mind that there are compromises available. For instance, you could create one single file, but limit its size or number of records. Once the limit is reached, then create another file.
+
+Solving this sort of issues is where tools like the ELK stack really shine. They will manage this complex problem for you, with little to no set up.
+
+### Storage
+
+Applications can generate huge amount of log data. Storage is reasonably cheap, but still we cannot just dump gigabytes of logs every day to a server folder without a plan. There are not hard rules, but here are a couple of things to consider:
+
+*   Can you clean up logs with an automated routine job that transfer the content to a database or another appropriate long term storage?
+*   How often do you need to access the logs? Some logs are rarely read, maybe they are collected only to comply with some governance regulation. Those logs can be transferred to a so called cold storage. Cold storage is significantly cheaper than hot storage, but it will cost more to access the data. As a rule of thumb, Azure suggest to consider cold storage if you access your data less than once a month.
+
+### Security
+
+Some logs will record personal information (PII). You will need to check with your organization’s governance what the process is in this case, but generally you will have to encrypt the logs and store them in special locations. Good encryption libraries in R are `cyphr`, `sodium`, and `encryptr`.
+
+### What’s after the log
+
+The final thing to consider is: “What to do with the logs”? To answer this question it is critical that you know what your organization has to offer to consume logs. Examples includes products such as the ELK stack, Splunk, Azure Monitor, and many more.
+
+Just make sure you know what your organization uses, then create logs and store them in a way that is easily accessible by the tool of choice.
+
+If your organization does not have away to consume logs, you could build your own solution. Platforms like Posit’s workbench and rsconnect will make it easy. You can build a scheduled R Markdown to aggregate logs routinely, then a Shiny app to consume the logs. This will work, but it should also raise a red flag: it is an approach that is hardly scalable in large organizations, and it will require a dedicated team to build and maintain the solution.
+
+Finally, as a general rule of thumb, remember that technical logs should be monitored live, while business logs can be aggregated and monitored with a delayed scheduled. The amount of delay will depend on how business critical the application itself is, and how much it is used.
+
+### Wrap up
+
+In this article we saw why logs are important. We then looked at a few general tips to deal with logs, and we used R to provide examples.
+
+If there is one single takeaway I’d like you to remember, is that logs are so fundamental to the health of an applications, that they should be planned and executed with the same care and effort you put into every other aspect of the tool you are building. Talk with all the stakeholder to determine what information they need, find out how your organization consumes logs, and try to plug into those solutions rather than reinventing the wheel.
+

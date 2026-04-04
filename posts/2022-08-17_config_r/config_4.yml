@@ -1,0 +1,5 @@
+default:
+  memSize: !expr sum(seq(1,10))
+  serverConfig: !expr config::get(file="serverConfig.yml")
+  nCores: !expr parallel::detectCores()
+  
