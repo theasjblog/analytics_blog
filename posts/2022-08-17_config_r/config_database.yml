@@ -1,8 +1,0 @@
-default:
-  runParallel: TRUE
-  databaseName: fancyDB
-test:
-  runParallel: FALSE
-  databaseName: fancyDBTest
-  nTests: 3
-  
