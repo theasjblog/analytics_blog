@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Adrian Joseph">
+<meta name="dcterms.date" content="2026-05-10">
+<meta name="description" content="A practical architecture for AI-assisted training plans using structured data, validation code, and constrained LLM output.">
+
+<title>Designing a Repeatable AI-Assisted Training Planning System – ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../img/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Designing a Repeatable AI-Assisted Training Planning System</h1>
+                  <div>
+        <div class="description">
+          A practical architecture for AI-assisted training plans using structured data, validation code, and constrained LLM output.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">software-design</div>
+                <div class="quarto-category">productivity</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Adrian Joseph </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 10, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-challenge" id="toc-the-challenge" class="nav-link active" data-scroll-target="#the-challenge">The challenge</a>
+  <ul class="collapse">
+  <li><a href="#concrete-problem" id="toc-concrete-problem" class="nav-link" data-scroll-target="#concrete-problem">Concrete problem</a></li>
+  <li><a href="#abstract-problem" id="toc-abstract-problem" class="nav-link" data-scroll-target="#abstract-problem">Abstract problem</a></li>
+  </ul></li>
+  <li><a href="#abstract-design" id="toc-abstract-design" class="nav-link" data-scroll-target="#abstract-design">Abstract Design</a>
+  <ul class="collapse">
+  <li><a href="#core-design-principle" id="toc-core-design-principle" class="nav-link" data-scroll-target="#core-design-principle">Core Design Principle</a></li>
+  <li><a href="#high-level-architecture" id="toc-high-level-architecture" class="nav-link" data-scroll-target="#high-level-architecture">High-Level Architecture</a></li>
+  <li><a href="#validation-and-repair" id="toc-validation-and-repair" class="nav-link" data-scroll-target="#validation-and-repair">Validation and Repair</a></li>
+  <li><a href="#failure-modes-observed-in-practice" id="toc-failure-modes-observed-in-practice" class="nav-link" data-scroll-target="#failure-modes-observed-in-practice">Failure Modes Observed in Practice</a></li>
+  </ul></li>
+  <li><a href="#practical-implementation" id="toc-practical-implementation" class="nav-link" data-scroll-target="#practical-implementation">Practical Implementation</a>
+  <ul class="collapse">
+  <li><a href="#system-components" id="toc-system-components" class="nav-link" data-scroll-target="#system-components">System Components</a></li>
+  <li><a href="#system-boundaries" id="toc-system-boundaries" class="nav-link" data-scroll-target="#system-boundaries">System Boundaries</a></li>
+  <li><a href="#data-model" id="toc-data-model" class="nav-link" data-scroll-target="#data-model">Data Model</a></li>
+  <li><a href="#prompt-engineering" id="toc-prompt-engineering" class="nav-link" data-scroll-target="#prompt-engineering">Prompt Engineering</a></li>
+  <li><a href="#operational-characteristics" id="toc-operational-characteristics" class="nav-link" data-scroll-target="#operational-characteristics">Operational Characteristics</a></li>
+  <li><a href="#concrete-training-example" id="toc-concrete-training-example" class="nav-link" data-scroll-target="#concrete-training-example">Concrete Training Example</a></li>
+  <li><a href="#stable-inputs-narrow-outputs" id="toc-stable-inputs-narrow-outputs" class="nav-link" data-scroll-target="#stable-inputs-narrow-outputs">Stable Inputs, Narrow Outputs</a></li>
+  <li><a href="#human-editing-and-oversight" id="toc-human-editing-and-oversight" class="nav-link" data-scroll-target="#human-editing-and-oversight">Human Editing and Oversight</a></li>
+  </ul></li>
+  <li><a href="#tradeoffs-and-lessons-learnt" id="toc-tradeoffs-and-lessons-learnt" class="nav-link" data-scroll-target="#tradeoffs-and-lessons-learnt">Tradeoffs and Lessons Learnt</a>
+  <ul class="collapse">
+  <li><a href="#benefits" id="toc-benefits" class="nav-link" data-scroll-target="#benefits">Benefits</a></li>
+  <li><a href="#possible-drawbacks" id="toc-possible-drawbacks" class="nav-link" data-scroll-target="#possible-drawbacks">Possible Drawbacks</a></li>
+  <li><a href="#lessons-learnt" id="toc-lessons-learnt" class="nav-link" data-scroll-target="#lessons-learnt">Lessons Learnt</a></li>
+  <li><a href="#portability" id="toc-portability" class="nav-link" data-scroll-target="#portability">Portability</a></li>
+  </ul></li>
+  <li><a href="#future-work" id="toc-future-work" class="nav-link" data-scroll-target="#future-work">Future Work</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="the-challenge" class="level2">
+<h2 class="anchored" data-anchor-id="the-challenge">The challenge</h2>
+<section id="concrete-problem" class="level3">
+<h3 class="anchored" data-anchor-id="concrete-problem">Concrete problem</h3>
+<p>The concrete problem was personalized training under a system I could reliably control.</p>
+<p>There are several obvious ways to get training plans, but each one has a clear limitation.</p>
+<ol type="1">
+<li><p>Get a human coach. This is still the best option, but it is not always financially feasible.</p></li>
+<li><p>Download static plans. They are easy to obtain, but they do not adapt well to individual specifics, changing goals, current fitness, or shifting weekly availability.</p></li>
+<li><p>Use a purchased adaptive system. Products such as Humango solve part of the adaptation problem, but the workflow is owned by the product. If the product changes behavior, removes a feature, or gradually falls out of sync with the athlete’s workflow, the user has very little control. There is also limited visibility into how the underlying models behave or degrade over time.</p></li>
+<li><p>Use generic LLM chat directly. This is flexible, but it drifts. As the conversation grows, responses become slower, context handling becomes less reliable, updated zones and scheduling constraints are not always applied consistently, and hallucinations become more likely.</p></li>
+</ol>
+<p>The goal of this article is the next option: a custom system that produces personalized plans, but does so transparently, reliably, and at a cost that is still reasonable.</p>
+<p>In practice, that means a workflow that can:</p>
+<ul>
+<li>read real availability and scheduling constraints at any time</li>
+<li>use current zones and athlete settings from a canonical source</li>
+<li>incorporate recent training outcomes and season context</li>
+<li>generate a weekly plan as structured output</li>
+<li>validate that output against hard rules</li>
+<li>repair invalid plans</li>
+</ul>
+</section>
+<section id="abstract-problem" class="level3">
+<h3 class="anchored" data-anchor-id="abstract-problem">Abstract problem</h3>
+<p>The training use case is specific, but the engineering problem is broader. At a more abstract level, this is a stateful workflow design problem: how to use an LLM inside a system that must remain inspectable, repeatable, and cheap enough to run continuously.</p>
+<p>The point was not to prove that an LLM can replace a human coach. It cannot. The point was to build a system where an LLM can contribute useful synthesis without being trusted for state management, validation, or business rules.</p>
+</section>
+</section>
+<section id="abstract-design" class="level2">
+<h2 class="anchored" data-anchor-id="abstract-design">Abstract Design</h2>
+<section id="core-design-principle" class="level3">
+<h3 class="anchored" data-anchor-id="core-design-principle">Core Design Principle</h3>
+<p>The guiding principle is simple:</p>
+<blockquote class="blockquote">
+<p>Use the LLM model for synthesis. Use code and tables for state, constraints, and repeatability.</p>
+</blockquote>
+<p>This principle drove several concrete design decisions:</p>
+<ul>
+<li>store athlete profile, availability, races, season plan, and training settings in stable tables</li>
+<li>normalize season-aware coaching state before prompting the model</li>
+<li>keep prompt instructions stable and versioned</li>
+<li>validate generated plans in code against hard rules and repair iteratively if needed</li>
+</ul>
+<p>This architecture is less magical than a giant chat thread, but much more reliable.</p>
+<p>The pattern generalizes well beyond endurance training. It applies to scheduling, operations tooling, content production pipelines, intake systems, and any domain where the LLM should assist decisions without becoming the system of record.</p>
+<p>Once that pattern is clear, the concrete stack becomes almost incidental.</p>
+<p>This pattern is also not unique to training. It is closely aligned with the way several established commercial tools constrain model behavior.</p>
+<p>In analytics tools such as Databricks Genie Workspaces, natural-language questions are not answered by giving the model unconstrained freedom over an entire data estate. The system narrows the problem through known tables, curated schemas, and code-like query boundaries so that common questions resolve to trusted implementations rather than improvised reasoning.</p>
+<p>The same idea appears in specialized agent tooling such as Claude Gems, where the goal is not a fully general assistant but a narrowly instructed agent that performs one task well under a stable set of detailed instructions.</p>
+<p>This workflow follows the same design instinct. It is home-built, but not ad hoc. The point is to combine editable state, persistent instructions, deterministic validation, and narrow model scope in a way that matches the better practices already visible in mature commercial systems.</p>
+</section>
+<section id="high-level-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="high-level-architecture">High-Level Architecture</h3>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    A["Data tables"] --&gt; B["Normalization layer"]
+    C["Fitness data source"] --&gt; B
+    B --&gt; D["coach_state and planning context"]
+    D --&gt; E["LLM request"]
+    E --&gt; F["Structured JSON plan"]
+    F --&gt; G["Validation engine"]
+    G --&gt;|pass| H["Persist to data tables"]
+    G --&gt;|fail| I["Targeted repair request"]
+    I --&gt; E
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>The important architectural point is that the LLM never receives raw authority. It receives a normalized context object and returns structured output. The surrounding code remains responsible for enforcement.</p>
+</section>
+<section id="validation-and-repair" class="level3">
+<h3 class="anchored" data-anchor-id="validation-and-repair">Validation and Repair</h3>
+<p>The planning workflow does not stop at “the model returned JSON.”</p>
+<p>The generated week is validated against hard rules, for example:</p>
+<ul>
+<li>session dates must stay inside the target week</li>
+<li>day names must match dates</li>
+<li>sports must be allowed on that date</li>
+<li>daily maximum sessions cannot be exceeded</li>
+<li>weekday duration caps are enforced</li>
+<li>brick sessions must be split into ordered single-sport rows with consistent naming</li>
+</ul>
+<p>This moves correctness from prompt wishfulness to executable logic.</p>
+<p>That distinction matters. Prompting can express intent. Validation enforces the contract.</p>
+<p>One of the more useful design choices is targeted repair.</p>
+<p>If one or two sessions violate constraints, I do not throw away the whole week and ask for a brand-new plan. I send back only the rejected sessions or affected dates, along with the original rules, and ask for replacements.</p>
+<p>This provides two concrete advantages:</p>
+<ul>
+<li>lower token usage, therefore lower cost</li>
+<li>less unnecessary churn in valid parts of the plan</li>
+</ul>
+<p>That second point is operationally important. Whole-plan regeneration tends to create drift even when most of the original output was acceptable. Constraining the repair scope keeps the system stable.</p>
+</section>
+<section id="failure-modes-observed-in-practice" class="level3">
+<h3 class="anchored" data-anchor-id="failure-modes-observed-in-practice">Failure Modes Observed in Practice</h3>
+<p>The architecture was shaped by specific failure modes rather than by abstract design preference.</p>
+<p>The most common problems I faced when I used plain ChatGPT were:</p>
+<ul>
+<li>context growth making generic chat slower and less predictable</li>
+<li>stale zones or stale scheduling assumptions being reused by the model</li>
+<li>day and date confusion in longer-running chat threads</li>
+<li>invalid session assignments such as prescribing a sport that was not allowed on a given day</li>
+<li>plans that exceeded session-count or duration limits</li>
+<li>unstable full-week regeneration where fixing one bad session created a new error elsewhere</li>
+</ul>
+<p>Each of those failure modes maps to a design response.</p>
+<ul>
+<li>Structured tables replace remembered chat context.</li>
+<li>Normalized payloads replace prose-heavy state reconstruction.</li>
+<li>Persistent prompt files hold stable rules.</li>
+<li>Python validation catches contract violations.</li>
+<li>Targeted repair replaces full-week re-generation.</li>
+</ul>
+<p>That mapping is important because it shows that the workflow was not designed in one pass. It was tightened in response to actual system behavior.</p>
+</section>
+</section>
+<section id="practical-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="practical-implementation">Practical Implementation</h2>
+<p>At this point, the article stops being purely architectural. The system is not just designed around these abstractions; it is implemented through concrete artifacts: prompt files, normalized JSON payloads, validation rules, repair requests, and terminal-visible usage data.</p>
+<section id="system-components" class="level3">
+<h3 class="anchored" data-anchor-id="system-components">System Components</h3>
+<p>This is my current stack. Nothing cutting edge. Simply the set of tools I was already using and that fit my workflow without friction.</p>
+<ul>
+<li><code>Intervals.icu</code> for endurance-specific source data such as completed activities, planned targets, wellness, and annual-plan phase signals</li>
+<li><code>Notion</code> for structured, editable operational data. It is effectively the database, but also one of the main visualization layers</li>
+<li><code>Python</code> for orchestration, normalization, validation, and artifact generation</li>
+<li><code>OpenAI</code> for weekly review text generation and structured session planning</li>
+</ul>
+<p>The point of this stack is not novelty. The point is that each tool is already good at one part of the workflow: fitness data, operational state, deterministic logic, or structured generation.</p>
+</section>
+<section id="system-boundaries" class="level3">
+<h3 class="anchored" data-anchor-id="system-boundaries">System Boundaries</h3>
+<p>The stack alone does not explain the design. What matters is the ownership boundary between layers.</p>
+<ul>
+<li>Notion tables hold editable operational state: availability, athlete profile, races, season plan, plan rows, review rows, and coach-managed settings.</li>
+<li>Python code owns normalization, orchestration, validation, writing artifacts, and repair-loop control.</li>
+<li>Persistent prompt files hold stable behavioral instructions that should not be rewritten every week.</li>
+<li>Model-generated outputs are limited to narrow artifacts such as structured session plans or weekly narrative review text.</li>
+</ul>
+<p>In short: Intervals.icu provides training data, Notion holds editable state, Python owns workflow logic, prompt files hold durable instructions, and the model is limited to narrow outputs. That separation answers one of the most important implementation questions: what lives in data, what lives in code, what lives in prompt files, and what is left to the model.</p>
+</section>
+<section id="data-model" class="level3">
+<h3 class="anchored" data-anchor-id="data-model">Data Model</h3>
+<p>Most of the reliability in this project comes from the shape of the data, not the cleverness of the prompts.</p>
+<p>I maintain dedicated Notion tables for:</p>
+<ul>
+<li>weekly availability</li>
+<li>weekly plan</li>
+<li>weekly review</li>
+<li>races</li>
+<li>athlete profile</li>
+<li>season plan</li>
+<li>athlete settings and zones</li>
+</ul>
+<p>This has three benefits.</p>
+<ol type="1">
+<li>The model receives current values from a single canonical source instead of chat memory.</li>
+<li>Fields such as availability, load targets, and preferences become easy to serialize into a compact payload.</li>
+<li>The workflow becomes inspectable: if a plan is wrong, I can inspect the exact upstream row or artifact that produced it.</li>
+</ol>
+<p>When I say maintain, I do not mean constant manual upkeep. I designed the workflow so manual intervention stays minimal. I edit personal and subjective information such as session feedback or weekly availability, but the large majority of fields are filled automatically by the system. My manual edits mostly provide constraints and overrides.</p>
+<p>The database layout can be summarized like this:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    A["Weekly availability"]
+    B["Athlete settings&lt;br/&gt;zones and thresholds"]
+    C["Athlete profile"]
+    D["Season plan"]
+    E["Races"]
+    F["Weekly plan"]
+    G["Weekly review"]
+
+    A --&gt; P["Weekly planning context"]
+    B --&gt; P
+    C --&gt; H["coach_state builder"]
+    D --&gt; H
+    E --&gt; H
+    G --&gt; H
+
+    H --&gt; P
+    P --&gt; F
+    F --&gt; G
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>This is not a strict relational schema. It is an operational data model: several Notion tables feed a normalized planning context, the generated weekly plan becomes its own table, and completed weeks roll forward into the review and coaching-state layer.</p>
+</section>
+<section id="prompt-engineering" class="level3">
+<h3 class="anchored" data-anchor-id="prompt-engineering">Prompt Engineering</h3>
+<p>The prompt design follows the same separation of concerns as the rest of the system.</p>
+<p>Variable prompt components stay in editable data sources. Weekly availability, allowed sports, athlete settings, season context, race context, and weekly review trends all live in Notion tables or normalized JSON artifacts generated from them. Those are the parts I expect to change every week, so they need to remain easy to edit without touching code or prompt files.</p>
+<p>Constant prompt components live in persistent instruction files. This is where I define stable behavioral rules such as:</p>
+<ul>
+<li>stay within the maximum allocated time</li>
+<li>only prescribe sessions for sports allowed on that day</li>
+<li>respect weekly session limits</li>
+<li>keep weekday sessions short unless the context strongly justifies otherwise</li>
+<li>format brick workouts in a predictable way</li>
+</ul>
+<p>This split matters for two reasons.</p>
+<p>First, it keeps the high-variance parts of the prompt editable by changing data, not by rewriting instructions every week. Second, it keeps the high-confidence rules stable across runs. The model does not have to rediscover them from examples or from chat history because they are always present in the persistent context prompt.</p>
+<p>In practice, this means the prompt is not one giant block of prose. It is the combination of a stable instruction layer and a variable data payload. That is much easier to reason about, easier to audit, and cheaper to run repeatedly.</p>
+<p>A small excerpt from the persistent planning prompt looks like this:</p>
+<pre class="text"><code>Planning rules:
+- return only sessions that fit the availability and constraints
+- never exceed max_sessions for a date
+- only prescribe sports listed in allowed_sports for that date
+- sessions scheduled Monday through Friday should usually be between
+  45 and 60 minutes maximum
+- every brick segment must be its own row</code></pre>
+<p>That excerpt matters because these rules do not change every week. They belong in a stable instruction layer, not in ad hoc edits to the prompt body.</p>
+</section>
+<section id="operational-characteristics" class="level3">
+<h3 class="anchored" data-anchor-id="operational-characteristics">Operational Characteristics</h3>
+<p>The current numbers are still based on a small sample, but they are already good enough to make the discussion more concrete. In the logged runs so far, a weekly review generation took 2,328 total tokens and about 4.3 seconds. The planning runs were heavier, as expected. Two logged planning runs consumed 12,761 and 13,925 total tokens respectively, across two requests each: the initial plan plus one targeted repair pass. End-to-end OpenAI latency for those runs was 18.6 seconds and 14.4 seconds.</p>
+<p>Using the specific model in these runs, <code>gpt-5.4-mini</code>, and OpenAI standard API pricing as of May 10, 2026, that translated to roughly $0.0028 USD for the weekly review run and about $0.0155 to $0.0174 USD for the planning runs with one repair pass. Using an exchange rate of about 1 USD = 1.365 CAD on the same date, that is roughly $0.0039 CAD for the review and about $0.0211 to $0.0238 CAD for the planning runs.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Run</th>
+<th style="text-align: right;">Requests</th>
+<th style="text-align: right;">Input tokens</th>
+<th style="text-align: right;">Output tokens</th>
+<th style="text-align: right;">Total tokens</th>
+<th style="text-align: right;">Latency</th>
+<th style="text-align: right;">Repair passes</th>
+<th style="text-align: right;">Approx. USD</th>
+<th style="text-align: right;">Approx. CAD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Weekly review</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2,038</td>
+<td style="text-align: right;">290</td>
+<td style="text-align: right;">2,328</td>
+<td style="text-align: right;">4.3 s</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">$0.0028</td>
+<td style="text-align: right;">$0.0039</td>
+</tr>
+<tr class="even">
+<td>Weekly plan A</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">11,191</td>
+<td style="text-align: right;">1,570</td>
+<td style="text-align: right;">12,761</td>
+<td style="text-align: right;">18.6 s</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">$0.0155</td>
+<td style="text-align: right;">$0.0211</td>
+</tr>
+<tr class="odd">
+<td>Weekly plan B</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">12,062</td>
+<td style="text-align: right;">1,863</td>
+<td style="text-align: right;">13,925</td>
+<td style="text-align: right;">14.4 s</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">$0.0174</td>
+<td style="text-align: right;">$0.0238</td>
+</tr>
+</tbody>
+</table>
+<p>That is not enough data to claim a stable long-term average yet, but it is enough to show the operating shape of the system. The expensive step is the weekly plan generation, not the review. The repair loop does add overhead, but it does so in a narrow and predictable way rather than by forcing a full re-generation of the week.</p>
+</section>
+<section id="concrete-training-example" class="level3">
+<h3 class="anchored" data-anchor-id="concrete-training-example">Concrete Training Example</h3>
+<p>Now that the architecture, data model, and prompt design are clear, it is easier to see how the pieces fit together in a concrete workflow.</p>
+<section id="step-1-sync-notion-and-intervals.icu" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-sync-notion-and-intervals.icu">Step 1: Sync Notion and intervals.icu</h4>
+<p>Suppose I have just finished a week of training. The Notion plan table will contain the planned sessions together with completion and feedback fields.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/notion.png" class="img-fluid figure-img"></p>
+<figcaption>Notion weekly plan table after a completed week, including planned sessions, completion fields, and athlete feedback.</figcaption>
+</figure>
+</div>
+<p>At the same time, Intervals.icu will have the detailed execution data imported from Garmin. I use Intervals.icu rather than Garmin directly because it has a good API and is inexpensive.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/intervals.png" class="img-fluid figure-img"></p>
+<figcaption>Intervals.icu activity view showing detailed execution metrics imported from Garmin.</figcaption>
+</figure>
+</div>
+<p>After the feedback columns in Notion have been updated for each session, the first workflow step is to synchronize Notion with Intervals.icu.</p>
+<p>This step is simple by design. It reads execution details from the Intervals.icu API and writes them into the appropriate Notion columns. For example, the actual training load from an executed session is stored so it can later be compared against the planned load.</p>
+</section>
+<section id="step-2-generate-a-weekly-review" class="level4">
+<h4 class="anchored" data-anchor-id="step-2-generate-a-weekly-review">Step 2: Generate a weekly review</h4>
+<p>In this step, the information stored in Notion tables, mostly the weekly plan, is compiled into a standardized JSON payload. That payload is combined with a curated context prompt and sent to OpenAI to generate a weekly review. The result is written back into a Notion table, and the code lets me inspect both the payload and the token consumption.</p>
+<p>There is still some room for hallucination, but the risk is reduced by giving the model a clear JSON structure it can use to compare plan versus execution and infer trends.</p>
+<pre class="text"><code>(venv) adrianstevejoseph@Adrians-MacBook-Air training_automation % python 02_plan_next_week.py
+Planning week starting 2026-05-11
+Targets: {'Run': 174.0, 'Bike': 198.0, 'Swim': 44.0}
+Active anchors: {'bike_ftp': 253, 'run_cp': 461, 'swim_css': 102, 'bike_z2': (157, 175), 'bike_tempo': (202, 218), 'bike_vo2': (278, 291), 'run_easy': (360, 387), 'run_aero': (373, 396), 'run_mod': (401, 420), 'run_thr': (433, 447), 'swim_easy': (117, 122), 'swim_aero': (110, 114), 'swim_css_range': (105, 107)}
+Season context: phase=Build, block=None, weeks_to_next_a_race=5.9
+OpenAI model: gpt-5.4-mini
+OpenAI planning response request token estimate: input~4821
+OpenAI planning response token usage: input=5042, output=1795, total=6837
+OpenAI planning response latency: 11.30s
+
+Generated plan failed validation. Attempting one targeted repair pass...
+- Generated weekday session too long on 2026-05-15: bike_long_aerobic is 100 min, expected &lt;= 60
+- Generated brick row with invalid name on 2026-05-15: 'run_brick'. Expected '02_run_brick'.
+- Generated brick row with invalid name on 2026-05-15: 'bike_brick'. Expected '01_bike_brick'.
+- Generated weekday brick too long on 2026-05-15: total brick duration is 120.0 min, expected &lt;= 60.
+...
+OpenAI repair response request token estimate: input~6876
+OpenAI repair response token usage: input=7748, output=304, total=8052
+OpenAI repair response latency: 3.33s
+
+OpenAI usage summary:
+- requests: 2
+- repair passes attempted: 1
+- tokens: input=12790, output=2099, total=14889
+- cumulative latency: 14.63s
+
+Logged OpenAI usage for week 2026-05-11:
+- logged runs: 3
+- requests: 6
+- tokens: input=36043, output=5532, total=41575
+- cumulative latency: 47.60s
+- repair passes attempted: 3
+
+Plan summary:
+- Run: 235 min, estimated load 215.0
+- Bike: 135 min, estimated load 101.0
+- Swim: 95 min, estimated load 52.0
+- Strength: 60 min, estimated load 30.0
+Wrote next_week_plan.json
+Wrote next_week_plan.csv</code></pre>
+</section>
+<section id="step-3-generate-a-plan-for-next-week" class="level4">
+<h4 class="anchored" data-anchor-id="step-3-generate-a-plan-for-next-week">Step 3: Generate a plan for next week</h4>
+<p>Now that the previous week has been reviewed, the next step is to plan the next week of training. That planning problem includes season goals, proximity to key races, current phase, injuries or sickness, general life constraints, and athlete-specific limiters. If all of this is sent to an LLM as a wall of text, the result is usually messy.</p>
+<p>The LLM therefore needs constrained freedom and automatic validation.</p>
+<p>The approach is similar to the weekly review workflow. Data is fetched from Notion, augmented with Intervals.icu context, consolidated into JSON, and sent together with the persistent instruction prompt.</p>
+</section>
+</section>
+<section id="stable-inputs-narrow-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="stable-inputs-narrow-outputs">Stable Inputs, Narrow Outputs</h3>
+<p>With the architecture, data model, and validation boundary in place, the shape of the model input becomes straightforward.</p>
+<p>A simplified planning request looks like this:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"availability"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2026-05-11"</span><span class="fu">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"allowed_sports"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"Run"</span><span class="ot">,</span> <span class="st">"Strength"</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"max_sessions"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"notes"</span><span class="fu">:</span> <span class="st">"Only evening available"</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"coach_state"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"season_context"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"current_phase"</span><span class="fu">:</span> <span class="st">"build"</span><span class="fu">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"weeks_to_next_a_race"</span><span class="fu">:</span> <span class="dv">6</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"target_loads"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"run"</span><span class="fu">:</span> <span class="dv">240</span><span class="fu">,</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bike"</span><span class="fu">:</span> <span class="dv">280</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The point of a payload like this is not that it is elegant. The point is that it is explicit. The model no longer has to infer scheduling constraints from prose spread across a month of chat history.</p>
+<p>Even with this structure, errors can still appear. The model might schedule a swim on a day where swimming is not allowed, or prescribe sessions longer than the available time. This is where the deterministic Python layer keeps the stochastic model under control. The plan is validated against predetermined rules, and rejected rows are sent back for correction.</p>
+<p>However, the entire plan is not sent back. Doing that would increase token consumption and create unnecessary churn. If version 1 has a bad Wednesday and the whole week is regenerated, Wednesday may improve while Friday becomes wrong. Sending back only the rejected session, together with an accurate rejection explanation, keeps the repair focused and the rest of the week stable.</p>
+<p>The validation layer produces explicit errors rather than vague human-facing complaints. A typical rejection looks like this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"type"</span><span class="fu">:</span> <span class="st">"disallowed_sport"</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"message"</span><span class="fu">:</span> <span class="st">"Generated disallowed sport on 2026-05-13: Swim not in ['Run']"</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"session_key"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"2026-05-13"</span><span class="ot">,</span> <span class="st">"Swim"</span><span class="ot">,</span> <span class="st">"Threshold swim"</span><span class="ot">]</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>That error can then be turned into a narrow repair request. In practice, the repair prompt looks more like this than like a fresh full-week generation:</p>
+<pre class="text"><code>Validation errors:
+- Generated disallowed sport on 2026-05-13: Swim not in ['Run']
+
+Rejected sessions or affected dates to replace:
+[
+  {
+    "Date": "2026-05-13",
+    "Day": "Tuesday",
+    "Session": "Threshold swim",
+    "Sport": "Swim"
+  }
+]</code></pre>
+<p>This is the kind of implementation detail that makes the workflow credible. The system is not just asking for a better answer. It is providing a typed rejection, a narrowed scope, and a structured path to recovery.</p>
+</section>
+<section id="human-editing-and-oversight" class="level3">
+<h3 class="anchored" data-anchor-id="human-editing-and-oversight">Human Editing and Oversight</h3>
+<p>The workflow is not fully automatic, and that is intentional. First of all, I am still refining prompts and implementation details, so I need to be able to intervene manually.</p>
+<p>Furthermore, the manual work is intentionally concentrated in the places where human judgment is still useful:</p>
+<ul>
+<li>weekly availability updates</li>
+<li>subjective session feedback</li>
+<li>occasional overrides for unusual constraints, races, travel, or fatigue</li>
+</ul>
+<p>Everything else is designed to be normalized, generated, validated, and written automatically.</p>
+<p>In practice, the manual burden is already fairly small, although it is not yet zero.</p>
+<p>The recurring user input is mostly lightweight feedback rather than data entry. For each completed or skipped session, I record a short note that takes roughly 30 seconds. I also add a brief overall weekly comment after reviewing the generated analysis, which takes about another 30 seconds. Occasionally I also refresh training zones, which is usually about 10 seconds of work when needed.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 30%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Manual step</th>
+<th>Frequency</th>
+<th style="text-align: right;">Approx. time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Session-level feedback on completed or skipped sessions</td>
+<td>Per session</td>
+<td style="text-align: right;">~30 s each</td>
+</tr>
+<tr class="even">
+<td>Overall weekly feedback on the generated review</td>
+<td>Weekly</td>
+<td style="text-align: right;">~30 s</td>
+</tr>
+<tr class="odd">
+<td>Zone synchronization or refresh</td>
+<td>Occasional</td>
+<td style="text-align: right;">~10 s</td>
+</tr>
+</tbody>
+</table>
+<p>Running the full weekly pipeline currently takes about 5 minutes, but that is not because the system itself is slow. It is mostly because I am still in a full validation phase and manually double-check the outputs. Once the workflow is fully operational, I expect the end-to-end process to run in well under 1 minute.</p>
+</section>
+</section>
+<section id="tradeoffs-and-lessons-learnt" class="level2">
+<h2 class="anchored" data-anchor-id="tradeoffs-and-lessons-learnt">Tradeoffs and Lessons Learnt</h2>
+<section id="benefits" class="level3">
+<h3 class="anchored" data-anchor-id="benefits">Benefits</h3>
+<p>The system has worked well for a few concrete reasons:</p>
+<ul>
+<li>it is modular</li>
+<li>it is more repeatable than long-form chat</li>
+<li>it is cost-aware because the prompts are compact and repair is narrow</li>
+<li>it gives clearer failure modes because data, prompts, and validators are inspectable</li>
+</ul>
+<p>I deliberately kept the model layer replaceable.</p>
+<p>Today the workflow uses OpenAI. Tomorrow it could use Claude or another model behind the same normalization and validation boundary. That is possible because the core value of the system does not live in a vendor-specific prompt. It lives in:</p>
+<ul>
+<li>the data model</li>
+<li>the orchestration code</li>
+<li>the validation rules</li>
+<li>the narrow contract between context and output</li>
+</ul>
+<p>That is where most production-minded LLM systems should concentrate their complexity budget.</p>
+</section>
+<section id="possible-drawbacks" class="level3">
+<h3 class="anchored" data-anchor-id="possible-drawbacks">Possible Drawbacks</h3>
+<ul>
+<li>this is more engineering work than using an off-the-shelf product</li>
+<li>the system still requires maintenance when schemas or APIs change</li>
+<li>an experienced user is still needed to spot bad prescriptions, even if the likelihood of it happening is significantly reduced</li>
+<li>software can support coaching judgment, but it does not replace it</li>
+</ul>
+</section>
+<section id="lessons-learnt" class="level3">
+<h3 class="anchored" data-anchor-id="lessons-learnt">Lessons Learnt</h3>
+<ul>
+<li>reliability comes more from data modeling and validation than from prompt cleverness</li>
+<li>prompt engineering works better when variable inputs stay in editable data sources and stable rules stay in persistent instruction files</li>
+<li>the more state you ask the model to remember implicitly, the worse the system gets over time</li>
+<li>narrow repair passes are better than full regeneration for both stability and cost</li>
+<li>if the workflow matters, controllability matters as much as model quality</li>
+<li>if a system must remain reliable over time, explicit boundaries matter more than prompt cleverness alone</li>
+</ul>
+</section>
+<section id="portability" class="level3">
+<h3 class="anchored" data-anchor-id="portability">Portability</h3>
+<p>The pattern is more portable than the training domain suggests.</p>
+<p>What is domain-specific here is the payload content: races, zones, planned load, wellness, and weekly availability. What is reusable is the structure: editable operational state, normalized context, persistent instructions, validation rules, and targeted repair.</p>
+<p>The main limitation today is that the workflow is built around the systems I personally use, especially Notion and Intervals.icu. That is acceptable for a single-user or small-scale setup, but it is not the right foundation for a broader multi-user system.</p>
+<p>To adapt this pattern to other athletes or coaches, several things would need to change:</p>
+<ul>
+<li>the Notion-backed operational layer would need to be replaced by a more conventional application database</li>
+<li>a dedicated frontend would be needed to unify the user experience and replace Notion as the interactive layer</li>
+<li>connectors would need to be added for other popular fitness platforms such as Garmin and Strava</li>
+<li>the normalization layer would need to become more configurable so that athlete-specific rules, coach preferences, and source-specific schemas could vary without rewriting core logic</li>
+</ul>
+<p>All of that is technically feasible. The main issue is not conceptual, but operational: once the system moves beyond a personal workflow, it starts to inherit the usual scaling concerns around architecture, maintenance, support, and cost. The current implementation is not designed for that scope, and it does not need to be.</p>
+</section>
+</section>
+<section id="future-work" class="level2">
+<h2 class="anchored" data-anchor-id="future-work">Future Work</h2>
+<p>The next additions are relatively clear.</p>
+<ul>
+<li>Add a more explicit way to review and refresh zones so that threshold and anchor changes are surfaced intentionally rather than only flowing through the existing data pipeline.</li>
+<li>Add on-demand single-workout review so that the system can be queried interactively about one session without waiting for the full weekly review cycle.</li>
+<li>Add a dedicated frontend once performance, workflow stability, and token usage have settled enough to justify simplifying the user experience.</li>
+</ul>
+<p>At the moment, those additions are less about new ideas than about deciding when the current workflow is stable enough to justify a cleaner interface.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>The main value of this system is not that it uses an LLM. The main value is that it puts the LLM inside a workflow that is inspectable, constrained, and replaceable.</p>
+<p>That makes the system easier to control than direct chat and more resilient than outsourced product behavior that can change underneath the user. It also produces clearer failure modes: when something goes wrong, the issue can be traced to data, normalization, prompts, or validation rules instead of being treated as an opaque model quirk.</p>
+<p>For this kind of problem, that is the real engineering win. The useful abstraction is not “AI coach.” It is a controlled planning system with an LLM as one component.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="theasjblog/analyticsComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

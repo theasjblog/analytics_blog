@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Adrian Joseph">
+<meta name="dcterms.date" content="2023-10-06">
+<meta name="description" content="The importance of explaining model outputs.">
+
+<title>A case study on explainable AI – ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../img/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">A case study on explainable AI</h1>
+                  <div>
+        <div class="description">
+          The importance of explaining model outputs.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">ai</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Adrian Joseph </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 6, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#background-information" id="toc-background-information" class="nav-link active" data-scroll-target="#background-information">Background Information</a></li>
+  <li><a href="#workout-feedback" id="toc-workout-feedback" class="nav-link" data-scroll-target="#workout-feedback">Workout Feedback</a></li>
+  <li><a href="#first-example" id="toc-first-example" class="nav-link" data-scroll-target="#first-example">First example</a></li>
+  <li><a href="#second-example" id="toc-second-example" class="nav-link" data-scroll-target="#second-example">Second example</a></li>
+  <li><a href="#third-example" id="toc-third-example" class="nav-link" data-scroll-target="#third-example">Third example</a></li>
+  <li><a href="#rubbish-in-rubbish-out" id="toc-rubbish-in-rubbish-out" class="nav-link" data-scroll-target="#rubbish-in-rubbish-out">Rubbish In, Rubbish Out</a></li>
+  <li><a href="#explainable-ai-from-a-client-perspective" id="toc-explainable-ai-from-a-client-perspective" class="nav-link" data-scroll-target="#explainable-ai-from-a-client-perspective">Explainable AI from a client perspective</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/cover.png" class="img-fluid figure-img"></p>
+<figcaption>Image generated with Canva AI Magic Media.</figcaption>
+</figure>
+</div>
+<p>Large language models tools such as chatGPT opened up endless possibilities to automate and enhance several aspects of our lives. From clever nutrition coaches to improved chat bots, and from fraud detection tools to sports coaches, AI is now everywhere.</p>
+<p>While these models are complex, it is crucial that we can still interpret their results. Model interpretability is especially important in highly regulated sectors like finance and medicine, but it should not be underestimated in consumer-oriented applications.</p>
+<p>Today, we will use a commercial platform called Humango to demonstrate the importance of model interpretability. Before we proceed, I’d like to clarify that I have no affiliation with Humango. I am a subscriber who pays for the service and appreciates what they offer, despite some shortcomings.</p>
+<section id="background-information" class="level3">
+<h3 class="anchored" data-anchor-id="background-information">Background Information</h3>
+<section id="about-me" class="level4">
+<h4 class="anchored" data-anchor-id="about-me">About Me</h4>
+<p>Those who follow me on Medium may know that I enjoy training and participating in triathlon events. As someone who is passionate about data, I love delving deep into the information provided by my training gadgets. If you want to read more about the races I do and the gear I use, you can find me <a href="https://theasjblog.github.io/sport_blog/">here</a>.</p>
+</section>
+<section id="humango" class="level4">
+<h4 class="anchored" data-anchor-id="humango">Humango</h4>
+<p>Humango is a relatively new player in the field of training plan providers. Their main selling point is individualized and adaptive training plans. They achieve this by collecting background information, assigning workouts based on schedule constraints, fitness level, and race goals, automatically defining threshold values, and constantly monitoring workout feedback and performance to refine the training schedule.</p>
+<p>Overall, I believe it is a great proposition, and it has worked reasonably well for me. I particularly appreciate how it relieves me of the burden of constantly adjusting my training schedule to accommodate for changes in my work or family plans.</p>
+</section>
+</section>
+<section id="workout-feedback" class="level3">
+<h3 class="anchored" data-anchor-id="workout-feedback">Workout Feedback</h3>
+<p>One of the key parameters Humango uses to monitor the response to training load is workout compliance, which is represented as a percentage. The better you adhere to the prescribed intensity of a workout, the higher your compliance. If the plan is too hard and you cannot stick to the prescribed efforts, Humango will lower the training load.</p>
+<p>Let’s start by taking a look at how a workout session is prescribed. For each session, Humango tells me how hard I can go and for how long I should go at that intensity. “How hard to go” Can be prescribed by power, heart rate, pace, or perceived effort. For this article, we will focus on power and heart rate.</p>
+<p>Here is an example of a run workout with intensity prescribed as target power and heart rate ranges:</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Duration..min.</th>
+<th style="text-align: left;">Power..W.</th>
+<th style="text-align: left;">Heart.Rate..bpm.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">250-270</td>
+<td style="text-align: left;">120-140</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80</td>
+<td style="text-align: left;">280-300</td>
+<td style="text-align: left;">140-160</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">240-260</td>
+<td style="text-align: left;">120-130</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>This workout consists of three intervals with prescribed intensity ranges. I always use power for both running and cycling, but I also record the heart rate. In the Humango interface, I select “Power,” which is then sent to my watch as target zones.</p>
+<p>After completing the workout, Humango fetches the results and presents various charts for performance analysis. Additionally, Humango provides a “coach feedback”. One or two sentences that mimics what I real coach would tell you after looking at your data. In this article, we will dissect these feedback.</p>
+</section>
+<section id="first-example" class="level3">
+<h3 class="anchored" data-anchor-id="first-example">First example</h3>
+<p>Let’s examine the outcome of a workout. As I always do, I selected “Power” as my target reference metric.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_00.png" class="img-fluid figure-img"></p>
+<figcaption>A run workout analysis. Target power is represented by the area between two horizontal black lines. Dots represents real-life data points and are colour coded for target zones “high” (above target, red), “low” (below target, green), and on target(blue). This workout was largely below target.</figcaption>
+</figure>
+</div>
+<p>This chart represents a workout with four intervals. The black lines indicate the target ranges for each interval. The coloured dotted lines represent the “true” values recorded by my run power meter. Green dots indicate data points below the target, blue dots indicate data points on target, and red dots indicate data points above the target. A perfectly compliant workout would consist of all blue dots between the two horizontal black lines.</p>
+<p>In this particular workout, poor compliance is expected as most of the data points are below the target. To understand the extent of deviation from the target, we can look at these charts:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_01.png" class="img-fluid figure-img"></p>
+<figcaption>Compliance breakdown for the full workout (left) and for each lap (right). Overall, this workout was largely below target. The second interval was almost entirely below target.</figcaption>
+</figure>
+</div>
+<p>The bar chart on the left shows the percentage of data points below target (low), on target, or above target (high) for the entire workout. The chart on the right breaks down the compliance percentages for individual laps.</p>
+<p>From the chart on the left, we can see that only 25% of the data points were on target, while the remaining 75% were below target.</p>
+<p>Here is the coach feedback from Humango:</p>
+<blockquote class="blockquote">
+<p>Hey Adrian! This workout was so undercooked it is raw. I’m getting salmonella just by analyzing it. If it feels too hard to complete, maybe we could revisit your threshold zones.</p>
+</blockquote>
+<p>This analysis is entirely correct. I did not run as hard as I should have, resulting in under performance. No argument there.</p>
+<p>For fun, let’s plot the same workout using heart rate data:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_02.png" class="img-fluid figure-img"></p>
+<figcaption>Heart rate data for the same workout as above. Heart rate data was mostly on target.</figcaption>
+</figure>
+</div>
+<p>Interestingly, it appears that I was more compliant with heart rate than with power. This could be due to factors such as inaccurate thresholds in Humango or simply not feeling great on that particular day: high heart rate for low effort.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_03.png" class="img-fluid figure-img"></p>
+<figcaption>Compliance charts for the heart rate data. The workout compliance was about 75%. The second lap was an exception, with less than 50% compliance.</figcaption>
+</figure>
+</div>
+<p>I was on target approximately 75% of the time, which is not bad.</p>
+<p>Let’s set this information aside for now. Overall, we can understand what Humango is doing. We wanted to measure our workout by power, but we consistently ran at a lower power than the target, resulting in Humango indicating that we under performed. This assessment is logical and reasonable.</p>
+</section>
+<section id="second-example" class="level3">
+<h3 class="anchored" data-anchor-id="second-example">Second example</h3>
+<p>Now, let’s move on to another workout. Although my schedule called for a cycling workout with specific power targets, I decided to cycle freely without looking at the plan. I cycled at the intensity I felt like and for as long as I wanted. Here are the results:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_04.png" class="img-fluid figure-img"></p>
+<figcaption>Power data for a cycle workout done without looking at the plan. Very few points are on target.</figcaption>
+</figure>
+</div>
+<p>As expected, the compliance is all over the place. Sometimes I am above the target, sometimes below, and occasionally on target, although more by chance than intention. Let’s examine the compliance percentage charts:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_05.png" class="img-fluid figure-img"></p>
+<figcaption>As expected for this workout, the probabilities for a point to be on target, above target, or below target are roughly the same.</figcaption>
+</figure>
+</div>
+<p>Overall, I was on target only 25% of the time. Therefore, I do not expect Humango to be pleased with my performance. Let’s see what feedback Humango provides:</p>
+<blockquote class="blockquote">
+<p>Presumably you gave your recording device to your friend today? It’s too good to be yours…</p>
+</blockquote>
+<p>I’m sorry, what? How is that possible? We did a random workout without following the target, were on goal only 25% of the time, and yet we receive positive feedback? Why? What is happening here?</p>
+<p>Let’s examine the heart rate data:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_06.png" class="img-fluid figure-img"></p>
+<figcaption>Heart rate data for this free workout. Once again, I was clearly not following the plan here.</figcaption>
+</figure>
+</div>
+<p>Once again, it is a mixed bag, with some data points on target and others way off target.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_07.png" class="img-fluid figure-img"></p>
+<figcaption>Heart rate on target compliance is below 50%.</figcaption>
+</figure>
+</div>
+<p>We were on target approximately 50% of the time. I doubt a real-life drill sergeant would be pleased if I hit the target only 50% of the time.</p>
+<p>What is going on here? We don’t know, and this is precisely the problem with (lack of) explainable AI. We have a clearly wrong and unexpected result, but we don’t know why it occurred. Humango does not provide an explanation for such positive feedback when the numbers indicate otherwise.</p>
+</section>
+<section id="third-example" class="level3">
+<h3 class="anchored" data-anchor-id="third-example">Third example</h3>
+<p>Our final example is another run. This time, I set out with the aim of nailing the session. As always, I selected “Power” as my preferred metric and started the run. After 90 minutes, I returned, and here are the results:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_08.png" class="img-fluid figure-img"></p>
+<figcaption>The power data for this workout falls mostly between the two horizontal black lines: I was on target for the majority of the time.</figcaption>
+</figure>
+</div>
+<p>Yes, nailed it! The majority of data points are on target. To be precise:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_09.png" class="img-fluid figure-img"></p>
+<figcaption>The power compliance for this workout is high, over 75%. Only the last lap has poor compliance, but that was a short lap compared to the length of the workout overall, and it was the cooldown.</figcaption>
+</figure>
+</div>
+<p>I was on target more than 75% of the time. Only during the last 5 minutes (a cool down) did I fall below the target, which I consider acceptable for a cool down.</p>
+<p>Excited to receive positive feedback from Humango, I eagerly read the analysis:</p>
+<blockquote class="blockquote">
+<p>I’m so happy you are getting out there and having fun. Don’t waste my time! You’ve spent too much time in zones that I didn’t prescribe. Follow instructions next time by not going over or under the intensity set.</p>
+</blockquote>
+<p>Pardon me, what? Why? Where did it go wrong? It seems pretty spot on to me!</p>
+<p>As always, let’s plot the heart rate data:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_10.png" class="img-fluid figure-img"></p>
+<figcaption>Heart rate data shows that I was above target most of the time.</figcaption>
+</figure>
+</div>
+<p>As seen in the chart, my heart rate data was consistently above target, exceeding the target approximately 75% of the time.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/im_11.png" class="img-fluid figure-img"></p>
+<figcaption>The compliance breakdown shows around 10% compliance or less for heart rate.</figcaption>
+</figure>
+</div>
+<p>This might explain why the coach was dissatisfied, but not entirely. After all, we selected “Power”, not “Heart rate”, as our target metric. There is probably an issue with the thresholds here, as the two should match better: an easy run should look easy from every metric.</p>
+<p>But there is still the issue that we would expect good feedback, but we are getting bad feedback. We can make hypothesis on why, but the model is not giving us any clear explanation. Note that the model is not giving <em>us</em> consumer any information. I hope that Humango data scientists have more information than we do.</p>
+<p>To conclude, a few considerations.</p>
+</section>
+<section id="rubbish-in-rubbish-out" class="level3">
+<h3 class="anchored" data-anchor-id="rubbish-in-rubbish-out">Rubbish In, Rubbish Out</h3>
+<p>This is an obvious point. AI models, like the ones used by Humango, require accurate input data. If my input data, particularly my thresholds, are not accurate, Humango will struggle to provide quality feedback.</p>
+<p>In my case, the power and heart rate zones do not match, indicating that my thresholds are likely inaccurate.</p>
+<p>It is worth noting that while I initially set my thresholds, Humango now estimates them. I have noticed that Humango frequently makes small adjustments to my estimated thresholds, likely based on my performance and perceived effort rating. The initial inaccurate estimate may be due to the limited amount of data Humango has on me (I have only been using the platform for two months). However, given the adjustments being made to my thresholds, I believe they may eventually align in the future.</p>
+</section>
+<section id="explainable-ai-from-a-client-perspective" class="level3">
+<h3 class="anchored" data-anchor-id="explainable-ai-from-a-client-perspective">Explainable AI from a client perspective</h3>
+<p>What is the impact of Humango’s lack of transparency in providing feedback?</p>
+<p>One might think that it is merely a matter of laughing off unreasonable feedback, brushing it aside, and moving on. However, there is more to it than that.</p>
+<p>Firstly, users who are not experienced with structured workout plans may lose trust in the platform. For subscription-based companies this is a serious problem.</p>
+<p>Secondly, there may be implications for the overall accuracy of the modeling pipeline. It is likely that the training season’s plan depends on our ability to meet the prescribed workouts. If Humango thinks we consistently under-perform even when it is not true, it will Humango adjusts our schedule to make it easier, too easy in fact. As a result, we will show up to our target race under-trained. This compromises the overall quality of Humango’s offering.</p>
+<p>Finally, from a user’s perspective, it can be incredibly frustrating to be told that you under-performed or over-performed without any explanation or context. Imagine preparing a report for your boss, and they simply tell you it is terrible without providing any details or reasons. This lack of information would be frustrating, and it would be challenging to improve without knowing what went wrong in the first place.</p>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>Modern AI models are becoming increasingly complex, but this complexity does not eliminate the need for explainability. In fact, it is more important than ever to be able to interpret the predictions made by models.</p>
+<p>Even in a commercial application like the one we examined today, model explainability should not be neglected. While no human lives depend on it, and there may be no regulatory audits of the models, failing to provide explanations can erode customer trust and drive them away. Without customers, there is no company or platform to sell.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="theasjblog/analyticsComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

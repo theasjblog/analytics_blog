@@ -1,8 +1,0 @@
----
-title: "Pyhton config manager"
-description: "configparser"
----
-
-### Pyhton config manager
-
-configparser

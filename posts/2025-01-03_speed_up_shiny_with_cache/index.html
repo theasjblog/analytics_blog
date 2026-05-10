@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Adrian Joseph">
+<meta name="dcterms.date" content="2025-01-03">
+<meta name="description" content="Use renderCachedPlot, bindCache, and memoise to avoid repeating expensive work.">
+
+<title>Speed up Shiny with cache – ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../img/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Speed up Shiny with cache</h1>
+                  <div>
+        <div class="description">
+          Use renderCachedPlot, bindCache, and memoise to avoid repeating expensive work.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">app-development</div>
+                <div class="quarto-category">performance</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Adrian Joseph </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">January 3, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#caching-plots-with-rendercachedplot" id="toc-caching-plots-with-rendercachedplot" class="nav-link active" data-scroll-target="#caching-plots-with-rendercachedplot">Caching plots with <code>renderCachedPlot()</code></a></li>
+  <li><a href="#caching-reactive-outputs-with-bindcache" id="toc-caching-reactive-outputs-with-bindcache" class="nav-link" data-scroll-target="#caching-reactive-outputs-with-bindcache">Caching reactive outputs with <code>bindCache()</code></a></li>
+  <li><a href="#caching-function-results-with-memoise" id="toc-caching-function-results-with-memoise" class="nav-link" data-scroll-target="#caching-function-results-with-memoise">Caching function results with <code>memoise</code></a></li>
+  <li><a href="#which-caching-tool-should-you-use" id="toc-which-caching-tool-should-you-use" class="nav-link" data-scroll-target="#which-caching-tool-should-you-use">Which caching tool should you use?</a></li>
+  <li><a href="#final-note" id="toc-final-note" class="nav-link" data-scroll-target="#final-note">Final note</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p><img src="img/cover.png" class="img-fluid"></p>
+<p><strong><em>This article is heavily inspired by a similar article published by the good people at Appsilon. I cannot find it anymore, but if you can I strongly recommend you read that too, and subscribe to their news feed. It is truly excellent.</em></strong></p>
+<p>Shiny reactivity is great, but it can easily become expensive. Sometimes we ask the app to repeat the same costly work again and again just because a user toggled back to a state the app has already seen before.</p>
+<p>This is frustrating for users. If a plot or calculation was already produced once, waiting several seconds for the exact same result a second time is wasted time.</p>
+<p>In this post, we will look at three practical caching patterns for Shiny:</p>
+<ul>
+<li><code>renderCachedPlot()</code> for plots</li>
+<li><code>bindCache()</code> for reactive expressions and non-plot outputs</li>
+<li><code>memoise</code> for expensive function calls</li>
+</ul>
+<p>These tools solve slightly different problems, but the general idea is the same: compute once, reuse many times.</p>
+<section id="caching-plots-with-rendercachedplot" class="level2">
+<h2 class="anchored" data-anchor-id="caching-plots-with-rendercachedplot">Caching plots with <code>renderCachedPlot()</code></h2>
+<p>Let us start with a simple app that draws a scatter plot with 100,000 points and lets the user change the point colour.</p>
+<pre><code>library(shiny)
+library(ggplot2)
+
+myData &lt;- data.frame(x = rnorm(1e5), y = rnorm(1e5))
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons(
+        "plotColour",
+        "Color for points",
+        choices = c("red", "black", "blue"),
+        selected = "red"
+      )
+    ),
+    mainPanel(
+      plotOutput("plot")
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  output$plot &lt;- renderPlot({
+    ggplot(myData, aes(x, y)) +
+      geom_point(colour = input$plotColour)
+  })
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>This app works, but rendering that many points is expensive. If the user switches from red to blue and then back to red, the app recreates the red plot from scratch even though it has already done that work before.</p>
+<p>The fix is to cache the rendered plot.</p>
+<pre><code>library(shiny)
+library(ggplot2)
+
+shinyOptions(cache = cachem::cache_disk("./myapp-cache"))
+
+myData &lt;- data.frame(x = rnorm(1e5), y = rnorm(1e5))
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons(
+        "plotColour",
+        "Color for points",
+        choices = c("red", "black", "blue"),
+        selected = "red"
+      )
+    ),
+    mainPanel(
+      plotOutput("plot")
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  output$plot &lt;- renderCachedPlot({
+    ggplot(myData, aes(x, y)) +
+      geom_point(colour = input$plotColour)
+  },
+  cacheKeyExpr = {
+    list(input$plotColour)
+  })
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>Here is what changed:</p>
+<ul>
+<li>We specify where the cache should live with <code>shinyOptions(cache = cachem::cache_disk(...))</code>.</li>
+<li>We replace <code>renderPlot()</code> with <code>renderCachedPlot()</code>.</li>
+<li>We define <code>cacheKeyExpr</code>, which tells Shiny what makes one rendered plot different from another.</li>
+</ul>
+<p>In this example, the cache key depends only on <code>input$plotColour</code>, because that is the only thing that changes the plot output.</p>
+<p>The first time a given colour is requested, Shiny renders the plot normally and saves it to the cache. The next time the same colour is requested, Shiny can reuse the cached version instead of recreating the plot.</p>
+<p>This approach works best when:</p>
+<ul>
+<li>The plot is genuinely expensive to render.</li>
+<li>The number of possible plot states is limited.</li>
+<li>The underlying data is reasonably stable.</li>
+</ul>
+</section>
+<section id="caching-reactive-outputs-with-bindcache" class="level2">
+<h2 class="anchored" data-anchor-id="caching-reactive-outputs-with-bindcache">Caching reactive outputs with <code>bindCache()</code></h2>
+<p><code>renderCachedPlot()</code> is specific to plots. What if the expensive work is not a plot at all?</p>
+<p>Consider this app:</p>
+<pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "y", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  r &lt;- reactive({
+    Sys.sleep(2)
+    2 * as.numeric(input$x)
+  })
+
+  output$txt &lt;- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>The calculation itself is trivial, but <code>Sys.sleep(2)</code> simulates an expensive operation. Each time the user changes the input, the app waits two seconds. If they return to a previous selection, it still waits.</p>
+<p>For non-plot outputs, <code>bindCache()</code> is often the right solution.</p>
+<pre><code>library(shiny)
+library(magrittr)
+
+shinyOptions(cache = cachem::cache_disk("./myapp-bindcache"))
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "y", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  r &lt;- reactive({
+    Sys.sleep(2)
+    2 * as.numeric(input$x)
+  }) %&gt;%
+    bindCache(input$x)
+
+  output$txt &lt;- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>What changed:</p>
+<ul>
+<li>We configured a cache location with <code>shinyOptions()</code>.</li>
+<li>We added <code>bindCache(input$x)</code> to the reactive expression.</li>
+</ul>
+<p><code>bindCache()</code> uses its arguments to build the cache key. In this case, the result depends only on <code>input$x</code>, so that is all we need.</p>
+<p>The behavior is straightforward:</p>
+<ul>
+<li>The first time a value is requested, the reactive computes normally.</li>
+<li>Later requests for the same value can be served from cache.</li>
+</ul>
+<p>This is useful whenever you want caching for outputs that are not <code>ggplot2</code> graphics, including text, tables, and intermediate reactive results.</p>
+</section>
+<section id="caching-function-results-with-memoise" class="level2">
+<h2 class="anchored" data-anchor-id="caching-function-results-with-memoise">Caching function results with <code>memoise</code></h2>
+<p>There is another common case: the expensive work lives inside a normal R function. In that situation, <code>memoise</code> can be a better fit.</p>
+<p>Start with this example:</p>
+<pre><code>library(shiny)
+
+double_x &lt;- function(x) {
+  Sys.sleep(2)
+  x * 2
+}
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "x", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  r &lt;- reactive({
+    double_x(as.numeric(input$x))
+  })
+
+  output$txt &lt;- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>Again, the app repeats the same expensive work every time.</p>
+<p>Now wrap the function with <code>memoise</code>.</p>
+<pre><code>library(shiny)
+library(memoise)
+
+cd &lt;- cache_filesystem("./myapp-memoise")
+
+double_x &lt;- function(x) {
+  Sys.sleep(2)
+  x * 2
+}
+
+mmn &lt;- memoise(double_x, cache = cd)
+
+ui &lt;- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("x", "x", choices = c(3, 4, 5), selected = 3)
+    ),
+    mainPanel(
+      tagList(
+        div("2 * x:"),
+        verbatimTextOutput("txt")
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  r &lt;- reactive({
+    mmn(as.numeric(input$x))
+  })
+
+  output$txt &lt;- renderText(r())
+}
+
+shinyApp(ui = ui, server = server)</code></pre>
+<p>The changes are:</p>
+<ul>
+<li>We define a filesystem cache with <code>cache_filesystem()</code>.</li>
+<li>We wrap the expensive function with <code>memoise()</code>.</li>
+<li>The app calls the memoised version instead of the original function.</li>
+</ul>
+<p>If <code>mmn(3)</code> has already been computed once, the cached result can be returned the next time <code>mmn(3)</code> is called.</p>
+<p>This pattern is especially useful when expensive logic is already encapsulated in functions. It also generalizes beyond Shiny, which is one of the reasons <code>memoise</code> is so handy.</p>
+<p>One practical tip: Shiny modules are functions too. If module initialization or internal setup is expensive, <code>memoise</code> can sometimes help there as well.</p>
+</section>
+<section id="which-caching-tool-should-you-use" class="level2">
+<h2 class="anchored" data-anchor-id="which-caching-tool-should-you-use">Which caching tool should you use?</h2>
+<p>Use the tool that matches the level where the expensive work happens:</p>
+<ul>
+<li>Use <code>renderCachedPlot()</code> when the expensive output is a plot.</li>
+<li>Use <code>bindCache()</code> when the expensive work sits inside a reactive expression or other Shiny output pipeline.</li>
+<li>Use <code>memoise</code> when the expensive work is encapsulated in a regular R function.</li>
+</ul>
+<p>These tools are complementary, not competing.</p>
+</section>
+<section id="final-note" class="level2">
+<h2 class="anchored" data-anchor-id="final-note">Final note</h2>
+<p>Caching is powerful, but it is not a substitute for good Shiny engineering.</p>
+<p>Whenever possible:</p>
+<ul>
+<li>Serve data that is already prepared.</li>
+<li>Avoid unnecessary on-the-fly computation.</li>
+<li>Keep the cache key limited to the inputs that truly affect the result.</li>
+<li>Be careful with rapidly changing data, because stale cache can become a correctness problem.</li>
+</ul>
+<p>Used well, caching can make a Shiny app feel dramatically faster without changing the user-facing behavior at all.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="theasjblog/analyticsComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

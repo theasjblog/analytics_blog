@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Adrian Joseph">
+<meta name="dcterms.date" content="2022-10-01">
+<meta name="description" content="RStudio addins can make your R work faster and easier. Here is a list of my favourite addins.">
+
+<title>RStudio addins to streamline your workflow – ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../img/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">RStudio addins to streamline your workflow</h1>
+                  <div>
+        <div class="description">
+          RStudio addins can make your R work faster and easier. Here is a list of my favourite addins.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">productivity</div>
+                <div class="quarto-category">devtools</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Adrian Joseph </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 1, 2022</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#ggplot-and-graphics" id="toc-ggplot-and-graphics" class="nav-link active" data-scroll-target="#ggplot-and-graphics">ggplot and graphics</a>
+  <ul class="collapse">
+  <li><a href="#esquisse" id="toc-esquisse" class="nav-link" data-scroll-target="#esquisse">esquisse</a></li>
+  <li><a href="#ggthemeassist" id="toc-ggthemeassist" class="nav-link" data-scroll-target="#ggthemeassist">ggThemeAssist</a></li>
+  <li><a href="#colourpicker" id="toc-colourpicker" class="nav-link" data-scroll-target="#colourpicker">colourpicker</a></li>
+  </ul></li>
+  <li><a href="#r-markdown" id="toc-r-markdown" class="nav-link" data-scroll-target="#r-markdown">R markdown</a>
+  <ul class="collapse">
+  <li><a href="#ymlthis" id="toc-ymlthis" class="nav-link" data-scroll-target="#ymlthis">ymlthis</a></li>
+  <li><a href="#remedy" id="toc-remedy" class="nav-link" data-scroll-target="#remedy">remedy</a></li>
+  </ul></li>
+  <li><a href="#general-coding" id="toc-general-coding" class="nav-link" data-scroll-target="#general-coding">General coding</a>
+  <ul class="collapse">
+  <li><a href="#viewpipesteps" id="toc-viewpipesteps" class="nav-link" data-scroll-target="#viewpipesteps">ViewPipeSteps</a></li>
+  <li><a href="#bracketify" id="toc-bracketify" class="nav-link" data-scroll-target="#bracketify">bracketify</a></li>
+  <li><a href="#datapasta" id="toc-datapasta" class="nav-link" data-scroll-target="#datapasta">datapasta</a></li>
+  <li><a href="#regexplain" id="toc-regexplain" class="nav-link" data-scroll-target="#regexplain">regexplain</a></li>
+  <li><a href="#reprex" id="toc-reprex" class="nav-link" data-scroll-target="#reprex">reprex</a></li>
+  <li><a href="#styler" id="toc-styler" class="nav-link" data-scroll-target="#styler">styler</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/cover.jpg" class="img-fluid figure-img"></p>
+<figcaption>Photo by Markus Winkler on Unsplash</figcaption>
+</figure>
+</div>
+<p>A few years ago, RStudio introduced addins. Addins extend R and RStudio functionalities. They can either add entirely new features, or make the use of existing features easier.</p>
+<p>RStudio allows the community to develop addins. And the community loves them. We now have countless addins. Some are great, other not so much.</p>
+<p>Addins are easily installed (and developed). They are nothing more than R packages that use an API provided by RStudio. To use them you only need to install the addin as an R package and to to click the Addins menu. Simple as that. You do not even need to restart RStudio.</p>
+<p>A while ago I wrote a story about my <a href="../../posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html">favourite R packages</a>. Today, I’ll do the same with addins. But before we go any deeper: what makes an addins great? I believe that great addins provides easy access to routine operations. The important word is “operations”, plural. Some addins in, for example golem, do not do that; they only replicate the behaviour of a single line of code. This is not to say that golem is not good. It is one of my favourite packages. What I mean is that the addin is not make my work any faster. I can just as easily execute that line of code from the console. I don’t need the addin. Hence, you won’t find this kind of addins in this list.</p>
+<section id="ggplot-and-graphics" class="level2">
+<h2 class="anchored" data-anchor-id="ggplot-and-graphics">ggplot and graphics</h2>
+<p>Addins are great when coupled with interactive, visual tasks. This is why ggplot has some great addins.</p>
+<section id="esquisse" class="level3">
+<h3 class="anchored" data-anchor-id="esquisse">esquisse</h3>
+<p>esquisse is a fantastic little tool to build ggplots interactively. We all love ggplot, but it is hard to remember all the options for all the types of charts. esquisse allows you to interactively create your plot, then save the ggplot code to the source file. It is incredibly easy to play around with grouping, filling, and with different kinds of plots.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/esquisse_1.png" class="img-fluid figure-img"></p>
+<figcaption>esquisse interface allows to draft ggplot end export the R code.</figcaption>
+</figure>
+</div>
+</section>
+<section id="ggthemeassist" class="level3">
+<h3 class="anchored" data-anchor-id="ggthemeassist">ggThemeAssist</h3>
+<p>esquisse can only take you so far in your plot needs. ggThemeAssist picks it up where esquisse left it, so that you can really fine tune your plot. You start from some ggplot code, like the one produced by esquisse, and then you dive into every tiny detail. You can change font size, background colour, labels and caption, axis layout, etc.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/ggthemeassist.png" class="img-fluid figure-img"></p>
+<figcaption>Fine tune your plot with ggThemeAssist. Sometimes it can be a bit buggy, especially if you work on smaller laptop screens, but the utility is solid.</figcaption>
+</figure>
+</div>
+</section>
+<section id="colourpicker" class="level3">
+<h3 class="anchored" data-anchor-id="colourpicker">colourpicker</h3>
+<p>Sometimes you need to use specific colours to fit with your organization’s branding. Or you want to create your own effective and colour-blind safe palette. colourpicker helps you solving these problems. It gives you options to select colours and it then prints to the console the corresponding colour name in the desired format. You can then inject your colours into the chart you produced with esquisse and ggThemeAssist.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/colourpicker.png" class="img-fluid figure-img"></p>
+<figcaption>Create R colour palettes with colourpicker.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="r-markdown" class="level2">
+<h2 class="anchored" data-anchor-id="r-markdown">R markdown</h2>
+<p>If you are a data scientist, you are likely writing R markdown reports. RStudio addins can help you to speed up your work.</p>
+<section id="ymlthis" class="level3">
+<h3 class="anchored" data-anchor-id="ymlthis">ymlthis</h3>
+<p>One of the most tedious parts of writing an R markdown is to write the YAML chunk at the top. It has so many different options to tune, and it can be picky with the formatting. ymlthis allows you to interactively specify all the options you want in your YAML, and then it will create the YAML chunk for you. Do you want a table of content with 2 levels? No problem, just click on the relevant boxes. Do you want to create a PDF, rather than an HTML? Again, just click on the correct box. Done.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/ymlthis.png" class="img-fluid figure-img"></p>
+<figcaption>Generate custom R Markdown yaml chunks with ymlthis.</figcaption>
+</figure>
+</div>
+</section>
+<section id="remedy" class="level3">
+<h3 class="anchored" data-anchor-id="remedy">remedy</h3>
+<p>remedy contains shortcuts to all the useful R markdown formatting properties. You can set the headings’ level, create numbered lists or bullet points, etc. The feature I use the most is to select some text, and automatically convert it to a list. No need to manually change and formatting every single line.</p>
+<p>A note on gramr. gramr gives you suggestions for your writing, highlighting potentially problematic parts like passive sentences, or adverbs. I think this is a useful addins, and if you want to stay in R is it worth a look. However, if I really need to check my writing, I prefer to pass the text through some more friendly tools, like the <a href="https://hemingwayapp.com/?via=vien&amp;gad_source=1&amp;gbraid=0AAAAA-OTJqQXpBGjlGTu8eeXMWL_Vrkme&amp;gclid=Cj0KCQiAvvO7BhC-ARIsAGFyToWrBxT5F8Isk79t8KxG33IZJMaNs3-ob8yQ9wSrK0vHTXg_S_IdEGsaAgRREALw_wcB">Hemingway App</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/remedy.png" class="img-fluid figure-img"></p>
+<figcaption>Quickly translate plain English into R Markdown.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="general-coding" class="level2">
+<h2 class="anchored" data-anchor-id="general-coding">General coding</h2>
+<section id="viewpipesteps" class="level3">
+<h3 class="anchored" data-anchor-id="viewpipesteps">ViewPipeSteps</h3>
+<p>We all know how great dplyr is. The chaining of multiple data processing steps in pipelines with the %&gt;% operator is very neat. However, it is not always easy to debug those pipelines. How can you quickly check what happens at every step? You have to run one line of the pipe, examine the outcome, run the following line, examine the results, and so on until the end of the pipeline. What if you could automate all of this? With ViewPipeSteps you can. All you have to do is to select your entire pipeline, then use the addin. ViewPipeSteps will automatically open the outcome of each step of the pipeline to a new data frame that you can inspect in the RStudio UI.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/viewpipesteps.png" class="img-fluid figure-img"></p>
+<figcaption>ViewPipeSteps allows you to easily debug each step of a dplyr pipeline.</figcaption>
+</figure>
+</div>
+</section>
+<section id="bracketify" class="level3">
+<h3 class="anchored" data-anchor-id="bracketify">bracketify</h3>
+<p>In R, you can access list elements or data.frame columns using the <code>$</code> operator. However, this is not very readable. With the <code>[[</code> notation, the line of code will be easier to read because RStusio will highlight it with a different colour. Not only that, but using the <code>[[</code> notation makes your code more flexible: you can use dynamic referencing to column names or fields. bracketify does only one simple job: it goes over your file and changes all the <code>$</code> references to the equivalent <code>[[</code>.</p>
+</section>
+<section id="datapasta" class="level3">
+<h3 class="anchored" data-anchor-id="datapasta">datapasta</h3>
+<p>Have you ever wanted to generate R data from a dataset you copied from somewhere else, for instance a JSON or a Python list? If so, it is likely that you pasted your data to an R file, then manually added commas to separate items, wrapped the whole thing into a c() call, and maybe even formatted the lines to make sure you have each element in a new line. With datapasta you can say goodbye to all of this. Just copy some data to the clipboard, then launch the addin. In seconds, you will be able to automatically generate in a source file the data coming from the clipboard.</p>
+</section>
+<section id="regexplain" class="level3">
+<h3 class="anchored" data-anchor-id="regexplain">regexplain</h3>
+<p>Working with regex can be a pain, and a lot of trial and error to find the right combination of stuff to get the result you want. Often you might need to use some external regex sandbox to try things out, and then you need to translate the regex to an R-friendly version. With regexplain you can experiment with regex interactively and directly into R. Just start the addin, then try out different regex, and with the flavour of regex that will work with your package or funciton of choice (stringr, grep, gsub, etc.). When you are done, regexplain will write to your source file the exact R command you need to achieve your string manipulation goal.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/regexplain.png" class="img-fluid figure-img"></p>
+<figcaption>Experiment with regex from within R using regexplain.</figcaption>
+</figure>
+</div>
+</section>
+<section id="reprex" class="level3">
+<h3 class="anchored" data-anchor-id="reprex">reprex</h3>
+<p>If you work on the support side, you know how important it is to get as much information as possible around a failure. You want not only the failing code, but also the environment it runs on. You also want to investigate only the part of the code that is causing the issue, and not with hundreds of lines of code that have nothing to do with the problem. Similarly, if you ask a question on a site like stackoverflow, you want to provide all the information you can, all while using a minimal reproducible example. reprex can ensure this. You can select your minimal example and create a reprex object that contains session information and it is in a format compatible to the service you choose, for instance github o stackoverflow.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/reprex.png" class="img-fluid figure-img"></p>
+<figcaption>Use reprex to generate enriched documentation to submit when you request help or report a bug.</figcaption>
+</figure>
+</div>
+</section>
+<section id="styler" class="level3">
+<h3 class="anchored" data-anchor-id="styler">styler</h3>
+<p>Tidying up our code should be part of our daily activities. In some organizations, liniting your code might be required to merge code into a branch. styler can clean up your code for you. With just a couple of clicks you can fix indentations, long lines of code, or comments.</p>
+<p>What about you? What are your favourite addins?</p>
+<p>Thanks for reading, and remember to follow me to get notified on new stories.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="theasjblog/analyticsComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

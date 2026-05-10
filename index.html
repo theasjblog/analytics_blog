@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./img/logo.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-listing/list.min.js"></script>
+<script src="site_libs/quarto-listing/quarto-listing.js"></script>
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-listing .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-image','listing-title','listing-description','listing-categories','listing-date','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      page: 25,
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },
+      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed home-page">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(40)</span></div><div class="category" data-category="api">api <span class="quarto-category-count">(5)</span></div><div class="category" data-category="app-development">app-development <span class="quarto-category-count">(7)</span></div><div class="category" data-category="devtools">devtools <span class="quarto-category-count">(8)</span></div><div class="category" data-category="mlops">mlops <span class="quarto-category-count">(7)</span></div><div class="category" data-category="performance">performance <span class="quarto-category-count">(3)</span></div><div class="category" data-category="productivity">productivity <span class="quarto-category-count">(8)</span></div><div class="category" data-category="r">r <span class="quarto-category-count">(10)</span></div><div class="category" data-category="software-design">software-design <span class="quarto-category-count">(11)</span></div><div class="category" data-category="testing">testing <span class="quarto-category-count">(3)</span></div></div></div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ASJ analytics and software</h1>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="home-hero">
+<div class="home-kicker">
+<p>Independent writing on analytics and software</p>
+</div>
+<section id="build-analytics-systems-that-are-useful-maintainable-and-clear" class="level2">
+<h2 class="anchored" data-anchor-id="build-analytics-systems-that-are-useful-maintainable-and-clear">Build analytics systems that are useful, maintainable, and clear</h2>
+<p>This blog collects practical notes on analytics engineering, R, Shiny, APIs, and MLOps. The focus is not on theory for its own sake. It is on the work that makes technical systems easier to operate, explain, and improve.</p>
+<p>I write from the perspective of someone building real tools, debugging real workflows, and trying to make software decisions that hold up beyond the first release.</p>
+<p><a href="./about.html" class="hero-link">Read more about me</a></p>
+</section>
+</div>
+<section id="recent-writing" class="level2">
+<h2 class="anchored" data-anchor-id="recent-writing">Recent writing</h2>
+
+
+
+</section>
+
+<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
+<div class="list quarto-listing-default">
+<div class="quarto-post image-right" data-index="0" data-categories="software-design,productivity" data-listing-date-sort="1778385600000" data-listing-file-modified-sort="1778446855145" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="21" data-listing-word-count-sort="4055">
+<div class="thumbnail">
+<p><a href="./posts/2026-05-10_coach_ai/index.html" class="no-external"></a></p><a href="./posts/2026-05-10_coach_ai/index.html" class="no-external">
+<p><img loading="lazy" src="./posts/2026-05-10_coach_ai/img/cover.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2026-05-10_coach_ai/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2026-05-10_coach_ai/index.html" class="no-external">Designing a Repeatable AI-Assisted Training Planning System</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2026-05-10_coach_ai/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2026-05-10_coach_ai/index.html" class="no-external">A practical architecture for AI-assisted training plans using structured data, validation code, and constrained LLM output.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2026-05-10_coach_ai/index.html" class="no-external">
+<div class="listing-date">
+May 10, 2026
+</div>
+<div class="listing-reading-time">
+21 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-categories="app-development,performance" data-listing-date-sort="1735880400000" data-listing-file-modified-sort="1775326588095" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1402">
+<div class="thumbnail">
+<p><a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external"></a></p><a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external">
+<p><img loading="lazy" src="./posts/2025-01-03_speed_up_shiny_with_cache/img/cover.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external">Speed up Shiny with cache</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('performance'); return false;">
+performance
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external">Use renderCachedPlot, bindCache, and memoise to avoid repeating expensive work.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2025-01-03_speed_up_shiny_with_cache/index.html" class="no-external">
+<div class="listing-date">
+Jan 3, 2025
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="2" data-categories="mlops" data-listing-date-sort="1706072400000" data-listing-file-modified-sort="1775325858827" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="729">
+<div class="thumbnail">
+<p><a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external"></a></p><a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external">
+<p><img loading="lazy" src="https://cdn-images-1.medium.com/max/800/1*OEWOPNWC8vt5G0TJjnaWww.jpeg" class="thumbnail-image"></p>
+</a><p><a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external">Vetiver for MLOps: An Updated Perspective and Cautionary Note</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external">A review of my vetiver for MLOps article series.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2024-01-24_vetiver_mlops_updated_perspective/index.html" class="no-external">
+<div class="listing-date">
+Jan 24, 2024
+</div>
+<div class="listing-reading-time">
+4 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="3" data-categories="api,devtools" data-listing-date-sort="1704862800000" data-listing-file-modified-sort="1775325858826" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1347">
+<div class="thumbnail">
+<p><a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external"></a></p><a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external">
+<p><img loading="lazy" src="https://cdn-images-1.medium.com/max/800/1*0AgifxUos6-gb1utrHOLiQ.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external">How to log in R plumber REST API</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('api'); return false;">
+api
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external">Use hooks to simplify logging in plumber.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2024-01-10_log_plumber_api/index.html" class="no-external">
+<div class="listing-date">
+Jan 10, 2024
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="4" data-categories="api" data-listing-date-sort="1703048400000" data-listing-file-modified-sort="1775325858826" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1332">
+<div class="thumbnail">
+<p><a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external"></a></p><a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external">
+<p><img loading="lazy" src="https://cdn-images-1.medium.com/max/800/1*QNtU4mz_C46PWxa4E2EDGA.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external">Programmatic plumber - Part 3: filters and hooks</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('api'); return false;">
+api
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external">Modify the routing of your plumber API.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-12-20_programmatic_plumber_3/index.html" class="no-external">
+<div class="listing-date">
+Dec 20, 2023
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="5" data-categories="api" data-listing-date-sort="1701838800000" data-listing-file-modified-sort="1775325858825" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2261">
+<div class="thumbnail">
+<p><a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external"></a></p><a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-12-06_programmatic_plumber _2/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external">Programmatic plumber - Part 1: error handling and documentation</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('api'); return false;">
+api
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external">eturn meaning errors and document your API.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-12-06_programmatic_plumber _2/index.html" class="no-external">
+<div class="listing-date">
+Dec 6, 2023
+</div>
+<div class="listing-reading-time">
+12 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="6" data-categories="api" data-listing-date-sort="1700629200000" data-listing-file-modified-sort="1775325858825" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1020">
+<div class="thumbnail">
+<p><a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external"></a></p><a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-11-22_programmatic_plumber_1/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external">Programmatic plumber - Part 1: the basics</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('api'); return false;">
+api
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external">How to unlock the power of plumber API.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-11-22_programmatic_plumber_1/index.html" class="no-external">
+<div class="listing-date">
+Nov 22, 2023
+</div>
+<div class="listing-reading-time">
+6 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="7" data-categories="mlops" data-listing-date-sort="1696564800000" data-listing-file-modified-sort="1775325858825" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2119">
+<div class="thumbnail">
+<p><a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external"></a></p><a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-10-06_explainable_ai/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external">A case study on explainable AI</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external">The importance of explaining model outputs.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-10-06_explainable_ai/index.html" class="no-external">
+<div class="listing-date">
+Oct 6, 2023
+</div>
+<div class="listing-reading-time">
+11 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="8" data-categories="r,devtools" data-listing-date-sort="1694577600000" data-listing-file-modified-sort="1775325858824" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="747">
+<div class="thumbnail">
+<p><a href="./posts/2023-09-13_r_debug/index.html" class="no-external"></a></p><a href="./posts/2023-09-13_r_debug/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-09-13_r_debug/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-09-13_r_debug/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-09-13_r_debug/index.html" class="no-external">Introduction to debugging R with RStudio</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-09-13_r_debug/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-09-13_r_debug/index.html" class="no-external">How to find the cause of errors in your R code.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-09-13_r_debug/index.html" class="no-external">
+<div class="listing-date">
+Sep 13, 2023
+</div>
+<div class="listing-reading-time">
+4 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="9" data-categories="app-development" data-listing-date-sort="1691726400000" data-listing-file-modified-sort="1775325858824" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1016">
+<div class="thumbnail">
+<p><a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external"></a></p><a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-08-11_shiny_reactivity/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external">Shiny reactivity visualizer</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external">Optimize your Shiny apps by understanding the reactivity graph.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-08-11_shiny_reactivity/index.html" class="no-external">
+<div class="listing-date">
+Aug 11, 2023
+</div>
+<div class="listing-reading-time">
+6 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="10" data-categories="api" data-listing-date-sort="1690862400000" data-listing-file-modified-sort="1775325858823" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1372">
+<div class="thumbnail">
+<p><a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external"></a></p><a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-08-01_intro_plumber/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external">Introduction to engineering R plumber API</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('api'); return false;">
+api
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external">General guidelines on how to organize your R plumber API.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-08-01_intro_plumber/index.html" class="no-external">
+<div class="listing-date">
+Aug 1, 2023
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="11" data-categories="devtools" data-listing-date-sort="1689566400000" data-listing-file-modified-sort="1775325858823" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1306">
+<div class="thumbnail">
+<p><a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external"></a></p><a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-07-17_multiple_renv/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external">Multiple renv virtual environment in R</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external">How to easily switch between different renv libraires within the same project.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-07-17_multiple_renv/index.html" class="no-external">
+<div class="listing-date">
+Jul 17, 2023
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="12" data-categories="app-development,productivity" data-listing-date-sort="1686196800000" data-listing-file-modified-sort="1775325858823" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1336">
+<div class="thumbnail">
+<p><a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external"></a></p><a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-06-08_essential_shiny_libraries/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external">Essential Shiny libraries</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external">Step up you Shiny game with these libraries.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-06-08_essential_shiny_libraries/index.html" class="no-external">
+<div class="listing-date">
+Jun 8, 2023
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="13" data-categories="devtools" data-listing-date-sort="1684296000000" data-listing-file-modified-sort="1775325858822" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2061">
+<div class="thumbnail">
+<p><a href="./posts/2023-05-17_r_logging/index.html" class="no-external"></a></p><a href="./posts/2023-05-17_r_logging/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-05-17_r_logging/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-05-17_r_logging/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-05-17_r_logging/index.html" class="no-external">An introduction to logging with examples in R</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-05-17_r_logging/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-05-17_r_logging/index.html" class="no-external">Fundamental rules to define a logging strategy.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-05-17_r_logging/index.html" class="no-external">
+<div class="listing-date">
+May 17, 2023
+</div>
+<div class="listing-reading-time">
+11 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="14" data-categories="mlops" data-listing-date-sort="1683259200000" data-listing-file-modified-sort="1775325858822" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1544">
+<div class="thumbnail">
+<p><a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external"></a></p><a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-05-05_vetiver_mlops_4/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external">Build an end-to-end MLOps solution with vetiver for R and Python - Part 4</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external">The project retrspective. Was vetiver a good choice?</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-05-05_vetiver_mlops_4/index.html" class="no-external">
+<div class="listing-date">
+May 5, 2023
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="15" data-categories="mlops" data-listing-date-sort="1682568000000" data-listing-file-modified-sort="1775325858822" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1797">
+<div class="thumbnail">
+<p><a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external"></a></p><a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-04-27_vetiver_mlops_3/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external">Build an end-to-end MLOps solution with vetiver for R and Python - Part 3</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external">The feedback loop: monitoring.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-04-27_vetiver_mlops_3/index.html" class="no-external">
+<div class="listing-date">
+Apr 27, 2023
+</div>
+<div class="listing-reading-time">
+9 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="16" data-categories="mlops" data-listing-date-sort="1681963200000" data-listing-file-modified-sort="1775325858822" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="20" data-listing-word-count-sort="3857">
+<div class="thumbnail">
+<p><a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external"></a></p><a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-04-20_vetiver_mlops_2/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external">Build an end-to-end MLOps solution with vetiver for R and Python - Part 2</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external">The deployment pipeline.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-04-20_vetiver_mlops_2/index.html" class="no-external">
+<div class="listing-date">
+Apr 20, 2023
+</div>
+<div class="listing-reading-time">
+20 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="17" data-categories="mlops" data-listing-date-sort="1681358400000" data-listing-file-modified-sort="1775325858822" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2198">
+<div class="thumbnail">
+<p><a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external"></a></p><a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-04-13_vetiver_mlops_1/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external">Build an end-to-end MLOps solution with vetiver for R and Python - Part 1</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external">How can we build an end-to-end MLOps solution with vetiver? And should we do it?</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-04-13_vetiver_mlops_1/index.html" class="no-external">
+<div class="listing-date">
+Apr 13, 2023
+</div>
+<div class="listing-reading-time">
+11 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="18" data-categories="r,software-design" data-listing-date-sort="1680148800000" data-listing-file-modified-sort="1775325858821" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2449">
+<div class="thumbnail">
+<p><a href="./posts/2023-03-30_recursion_r/index.html" class="no-external"></a></p><a href="./posts/2023-03-30_recursion_r/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-03-30_recursion_r/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-03-30_recursion_r/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-03-30_recursion_r/index.html" class="no-external">Recursion and backtracking in R</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-03-30_recursion_r/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-03-30_recursion_r/index.html" class="no-external">Practical examples of recursion and backtracking in R, with performance considerations.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-03-30_recursion_r/index.html" class="no-external">
+<div class="listing-date">
+Mar 30, 2023
+</div>
+<div class="listing-reading-time">
+13 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="19" data-categories="mlops" data-listing-date-sort="1678939200000" data-listing-file-modified-sort="1775325858821" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1442">
+<div class="thumbnail">
+<p><a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external"></a></p><a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-03-16_vetiver_for_mlops/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external">R and Python vetiver package: a suitable MLOps solution?</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('mlops'); return false;">
+mlops
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external">Should you use vetiver as a free, open source MLOps solution?</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-03-16_vetiver_for_mlops/index.html" class="no-external">
+<div class="listing-date">
+Mar 16, 2023
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="20" data-categories="productivity,software-design" data-listing-date-sort="1678424400000" data-listing-file-modified-sort="1775325858821" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2123">
+<div class="thumbnail">
+<p><a href="./posts/2023-03-10_habits/index.html" class="no-external"></a></p><a href="./posts/2023-03-10_habits/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-03-10_habits/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-03-10_habits/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-03-10_habits/index.html" class="no-external">James Clear’s Atomic Habits for software developers and managers</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-03-10_habits/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-03-10_habits/index.html" class="no-external">Use the Atomic Habits method to adopt best software engineering practices and to improve your team’s work quality.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-03-10_habits/index.html" class="no-external">
+<div class="listing-date">
+Mar 10, 2023
+</div>
+<div class="listing-reading-time">
+11 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="21" data-categories="r,software-design" data-listing-date-sort="1677560400000" data-listing-file-modified-sort="1775325858820" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2501">
+<div class="thumbnail">
+<p><a href="./posts/2023-02-28_fit_file/index.html" class="no-external"></a></p><a href="./posts/2023-02-28_fit_file/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-02-28_fit_file/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-02-28_fit_file/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-02-28_fit_file/index.html" class="no-external">Read FIT files in R. A story on why you should not reinvent the wheel</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-02-28_fit_file/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-02-28_fit_file/index.html" class="no-external">How to deal with FIT files on R, and a lesson on choosing the best tool for the job.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-02-28_fit_file/index.html" class="no-external">
+<div class="listing-date">
+Feb 28, 2023
+</div>
+<div class="listing-reading-time">
+13 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="22" data-categories="software-design" data-listing-date-sort="1675314000000" data-listing-file-modified-sort="1775325858820" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1378">
+<div class="thumbnail">
+<p><a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external"></a></p><a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-02-02_no_good_practices/img/cover.png" alt="Image by the author."  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external">You Don’t Need Good Coding Practices. Do You?</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external">Thoughts from conversations with non-software engineers.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-02-02_no_good_practices/index.html" class="no-external">
+<div class="listing-date">
+Feb 2, 2023
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="23" data-categories="app-development,software-design" data-listing-date-sort="1674277200000" data-listing-file-modified-sort="1775325858820" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="937">
+<div class="thumbnail">
+<p><a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external"></a></p><a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-01-21_shiny_framework/img/cover.jpg" alt="Photo by Robert Anasch on Unsplash."  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external">Which R Shiny framework is the best? A comparison of vanilla Shiny, golem, rhino, and leprechaun</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external">There is no single way to develop a shiny app. But is there a “best” way? Here are my thoughts on some common shiny frameworks.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-01-21_shiny_framework/index.html" class="no-external">
+<div class="listing-date">
+Jan 21, 2023
+</div>
+<div class="listing-reading-time">
+5 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="24" data-categories="r,performance" data-listing-date-sort="1673672400000" data-listing-file-modified-sort="1775325858819" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="528">
+<div class="thumbnail">
+<p><a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external"></a></p><a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external">
+<p class="card-img-top"><img src="posts/2023-01-14_parallelization_r/img/cover.jpg" alt="Photo by Bernd Dittrich on Unsplash."  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external">Make any R code faster with this parallelization trick</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('performance'); return false;">
+performance
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external">A handy R trick to run in parallel different workflows.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2023-01-14_parallelization_r/index.html" class="no-external">
+<div class="listing-date">
+Jan 14, 2023
+</div>
+<div class="listing-reading-time">
+3 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="25" data-categories="devtools,productivity" data-listing-date-sort="1671858000000" data-listing-file-modified-sort="1775325858819" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1507">
+<div class="thumbnail">
+<p><a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external"></a></p><a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-12-24_make_your_r_project_template/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external">Make your own RStudio project template</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external">How to make sure everyone on your team is using the same blueprint.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-12-24_make_your_r_project_template/index.html" class="no-external">
+<div class="listing-date">
+Dec 24, 2022
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="26" data-categories="r,productivity" data-listing-date-sort="1670389200000" data-listing-file-modified-sort="1775325858819" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="15" data-listing-word-count-sort="2805">
+<div class="thumbnail">
+<p><a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external"></a></p><a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-12-07_frosty_snowman/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external">Frosty The Snowman. In R!</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external">Make your own Frosty The Snowman in R!</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-12-07_frosty_snowman/index.html" class="no-external">
+<div class="listing-date">
+Dec 7, 2022
+</div>
+<div class="listing-reading-time">
+15 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="27" data-categories="app-development,testing" data-listing-date-sort="1668229200000" data-listing-file-modified-sort="1775325858819" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2452">
+<div class="thumbnail">
+<p><a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external"></a></p><a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-11-12_build_professional_shiny_3/img/cover.jpg" alt="Photo by Agence Olloweb on Unsplash"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external">How to build a professional R Shiny app - part 3</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('testing'); return false;">
+testing
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external">In part 1 we planned a Shiny app. In part 2 we developed it. In part 3 we start to test it.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-11-12_build_professional_shiny_3/index.html" class="no-external">
+<div class="listing-date">
+Nov 12, 2022
+</div>
+<div class="listing-reading-time">
+13 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="28" data-categories="app-development,software-design" data-listing-date-sort="1667707200000" data-listing-file-modified-sort="1775325858819" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1513">
+<div class="thumbnail">
+<p><a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external"></a></p><a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-11-06_build_professional_shiny_2/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external">How to build a professional R Shiny app - part 2</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external">In part 1 we look at what to do before we get coding. In this part 2 we will look at setting up the Shiny app and using modules.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-11-06_build_professional_shiny_2/index.html" class="no-external">
+<div class="listing-date">
+Nov 6, 2022
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="29" data-categories="app-development,software-design" data-listing-date-sort="1665892800000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1244">
+<div class="thumbnail">
+<p><a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external"></a></p><a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-10-16_build_professional_shiny_1/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external">How to build a professional R Shiny app - part 1</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('app-development'); return false;">
+app-development
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external">Shiny apps are easy to build, but often they are designed and implemented poorly. Keep reading to learn how to make professional-grade Shiny apps.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-10-16_build_professional_shiny_1/index.html" class="no-external">
+<div class="listing-date">
+Oct 16, 2022
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="30" data-categories="productivity,devtools" data-listing-date-sort="1664596800000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1403">
+<div class="thumbnail">
+<p><a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external"></a></p><a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-10-01_rstudio_addsin/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external">RStudio addins to streamline your workflow</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external">RStudio addins can make your R work faster and easier. Here is a list of my favourite addins.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-10-01_rstudio_addsin/index.html" class="no-external">
+<div class="listing-date">
+Oct 1, 2022
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="31" data-categories="r,software-design" data-listing-date-sort="1663646400000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="19" data-listing-word-count-sort="3754">
+<div class="thumbnail">
+<p><a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external"></a></p><a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-09-20_oop_r_2/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external">S3, S4, RC, R6. Object oriented in R - Part 2</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external">RC and R6 objects.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-09-20_oop_r_2/index.html" class="no-external">
+<div class="listing-date">
+Sep 20, 2022
+</div>
+<div class="listing-reading-time">
+19 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="32" data-categories="r,software-design" data-listing-date-sort="1662955200000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="19" data-listing-word-count-sort="3606">
+<div class="thumbnail">
+<p><a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external"></a></p><a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-09-12_oop_r_1/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external">S3, S4, RC, R6. Object oriented in R - Part 1</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external">Introduction to object oriented in R, S3 and S4 objects.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-09-12_oop_r_1/index.html" class="no-external">
+<div class="listing-date">
+Sep 12, 2022
+</div>
+<div class="listing-reading-time">
+19 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="33" data-categories="testing" data-listing-date-sort="1662436800000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1255">
+<div class="thumbnail">
+<p><a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external"></a></p><a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-09-06_unit_testing_r_2/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external">Everything you want to know about unit testing in R - Part 2</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('testing'); return false;">
+testing
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external">Your survival guide to unit testing, test fixtures, mocking, and coverage in R.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-09-06_unit_testing_r_2/index.html" class="no-external">
+<div class="listing-date">
+Sep 6, 2022
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="34" data-categories="testing" data-listing-date-sort="1661486400000" data-listing-file-modified-sort="1775325858818" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1332">
+<div class="thumbnail">
+<p><a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external"></a></p><a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-08-26_unit_testing_r_1/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external">Everything you want to know about unit testing in R - Part 1</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('testing'); return false;">
+testing
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external">Your survival guide to unit testing, test fixtures, mocking, and coverage in R.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-08-26_unit_testing_r_1/index.html" class="no-external">
+<div class="listing-date">
+Aug 26, 2022
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="35" data-categories="r,productivity" data-listing-date-sort="1661054400000" data-listing-file-modified-sort="1775325858817" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1377">
+<div class="thumbnail">
+<p><a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external"></a></p><a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external">Improve your R workflow with these must have R packages</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external">R has countless packages. This is a collection of the ones I found to be the most useful for data scientists and software developers alike.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-08-01_improve_your_r_workflow_with_these_must_have_packages/index.html" class="no-external">
+<div class="listing-date">
+Aug 21, 2022
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="36" data-categories="r,performance" data-listing-date-sort="1661054400000" data-listing-file-modified-sort="1775325858817" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2572">
+<div class="thumbnail">
+<p><a href="./posts/2022-08-12_apply_functions/index.html" class="no-external"></a></p><a href="./posts/2022-08-12_apply_functions/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-08-12_apply_functions/img/cover.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-08-12_apply_functions/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-08-12_apply_functions/index.html" class="no-external">Everything you want to know about the R apply functions</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-08-12_apply_functions/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('performance'); return false;">
+performance
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-08-12_apply_functions/index.html" class="no-external">Use cases, examples, benchmarking.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-08-12_apply_functions/index.html" class="no-external">
+<div class="listing-date">
+Aug 21, 2022
+</div>
+<div class="listing-reading-time">
+13 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="37" data-categories="devtools" data-listing-date-sort="1660708800000" data-listing-file-modified-sort="1775325858817" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2060">
+<div class="thumbnail">
+<p><a href="./posts/2022-08-17_config_r/index.html" class="no-external"></a></p><a href="./posts/2022-08-17_config_r/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-08-17_config_r/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-08-17_config_r/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-08-17_config_r/index.html" class="no-external">How to manage your R configuration like a pro with config</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-08-17_config_r/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-08-17_config_r/index.html" class="no-external">A deep dive into the powerful R package config.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-08-17_config_r/index.html" class="no-external">
+<div class="listing-date">
+Aug 17, 2022
+</div>
+<div class="listing-reading-time">
+11 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="38" data-categories="devtools" data-listing-date-sort="1658462400000" data-listing-file-modified-sort="1775325858817" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1551">
+<div class="thumbnail">
+<p><a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external"></a></p><a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-07-22_renv_r_env_reproducible/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external">renv: make R environment reproducible</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('devtools'); return false;">
+devtools
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external">How to manage R dependencies and how to make sure that your code will keep working for as long as it needs to.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-07-22_renv_r_env_reproducible/index.html" class="no-external">
+<div class="listing-date">
+Jul 22, 2022
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="39" data-categories="r,productivity,software-design" data-listing-date-sort="1657684800000" data-listing-file-modified-sort="1775325858816" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2308">
+<div class="thumbnail">
+<p><a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external"></a></p><a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external">
+<p class="card-img-top"><img data-src="posts/2022-07-13_setup_r_for_success/img/cover.jpg"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external">Set-up R for success</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external"></a>
+</div>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('r'); return false;">
+r
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('productivity'); return false;">
+productivity
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('software-design'); return false;">
+software-design
+</div>
+</div>
+<div class="listing-description">
+<a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external">How to start working on an R project the smart way by laying rock solid foundations.</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./posts/2022-07-13_setup_r_for_success/index.html" class="no-external">
+<div class="listing-date">
+Jul 13, 2022
+</div>
+<div class="listing-reading-time">
+12 min
+</div>
+</a>
+</div>
+</div>
+</div>
+<div class="listing-no-matching d-none">
+No matching items
+</div>
+<nav id="listing-pagination" class="listing-pagination" aria-label="Page Navigation">
+  <ul class="pagination"></ul>
+</nav>
+</div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

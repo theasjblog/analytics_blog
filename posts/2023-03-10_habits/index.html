@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.45">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Adrian Joseph">
+<meta name="dcterms.date" content="2023-03-10">
+<meta name="description" content="Use the Atomic Habits method to adopt best software engineering practices and to improve your team’s work quality.">
+
+<title>James Clear’s Atomic Habits for software developers and managers – ASJ analytics and software</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../img/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=TODO"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'TODO', { 'anonymize_ip': true});
+</script>
+<link rel="apple-touch-icon" href="https://theasjblog.github.io/analytics/img/logo.png">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ASJ analytics and software</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/theasjblog" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/adrian-joseph/" target="_blank"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">James Clear’s Atomic Habits for software developers and managers</h1>
+                  <div>
+        <div class="description">
+          Use the Atomic Habits method to adopt best software engineering practices and to improve your team’s work quality.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">productivity</div>
+                <div class="quarto-category">software-design</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Adrian Joseph </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 10, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-is-a-habit" id="toc-what-is-a-habit" class="nav-link active" data-scroll-target="#what-is-a-habit">What is a “habit”?</a></li>
+  <li><a href="#before-we-start" id="toc-before-we-start" class="nav-link" data-scroll-target="#before-we-start">Before we start</a></li>
+  <li><a href="#first-rule-make-it-obvious" id="toc-first-rule-make-it-obvious" class="nav-link" data-scroll-target="#first-rule-make-it-obvious">First rule: Make it obvious</a></li>
+  <li><a href="#second-rule-make-it-attractive" id="toc-second-rule-make-it-attractive" class="nav-link" data-scroll-target="#second-rule-make-it-attractive">Second rule: make it attractive</a></li>
+  <li><a href="#third-rule-make-it-easy" id="toc-third-rule-make-it-easy" class="nav-link" data-scroll-target="#third-rule-make-it-easy">Third rule: make it&nbsp;easy</a></li>
+  <li><a href="#fourth-rule-make-it-satisfying" id="toc-fourth-rule-make-it-satisfying" class="nav-link" data-scroll-target="#fourth-rule-make-it-satisfying">Fourth rule: make it satisfying</a></li>
+  <li><a href="#some-general-rules" id="toc-some-general-rules" class="nav-link" data-scroll-target="#some-general-rules">Some general rules</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./img/cover.jpg" class="img-fluid figure-img"></p>
+<figcaption>Photo by Nubelson Fernandes on Unsplash.</figcaption>
+</figure>
+</div>
+<blockquote class="blockquote">
+<p>The most effective form of learning is practice, not planning.</p>
+</blockquote>
+<p>You might be familiar with the book <em>Atomic Habits</em> by James Clear. It is a great read I strongly recommend.</p>
+<p>Most of the book interpretations are about how to modify your personal routine to form or abandon habits. Think of stuff like:</p>
+<ul>
+<li>How can I read more?</li>
+<li>How can I eat better?</li>
+<li>How can I quit smoking?</li>
+<li>How can I find the time to learn X or Y?</li>
+</ul>
+<p>All of this is great, but there is much more to Clear’s book than this. In fact, James is a prolific public speaker. He talks about his method applications to different contexts, from parenting to business.</p>
+<p>Today we will look at how we can leverage James’ method to become a better software developer. A professional developer. In <a href="../../posts/2023-02-02_no_good_practices/index.html">this article</a> I mentioned some of the basic core skills that differentiate an amateur from a professional. As a quick re-cap, stuff like:</p>
+<ul>
+<li>Using version control.</li>
+<li>Using the proper IDE.</li>
+<li>Using the correct project and code structure.</li>
+<li>Define tests.</li>
+<li>Document and comment your code.</li>
+</ul>
+<p>If we think of these skills as habits, then James’ method can help us make the switch into the professional world.</p>
+<section id="what-is-a-habit" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-a-habit">What is a “habit”?</h3>
+<p>According to the Oxford Dictionary, a habit is:</p>
+<blockquote class="blockquote">
+<p>A thing that you do often and almost without thinking, especially something that is hard to stop doing.</p>
+</blockquote>
+<p>This concept is adopted by James, who also shift the focus to the <strong><em>habit formation</em></strong> process:</p>
+<blockquote class="blockquote">
+<p><strong>Habit formation</strong> is the process by which a behavior becomes progressively more automatic through repetition. The amount of time you have been performing a habit is not as important as the number of times you have performed it.</p>
+</blockquote>
+<p>The last sentence is key. What we will see today is how to use James’ method to increase the chances of “doing the right thing”, and doing it as often as possible.</p>
+</section>
+<section id="before-we-start" class="level3">
+<h3 class="anchored" data-anchor-id="before-we-start">Before we start</h3>
+<p>There is an obvious assumption made here: that you do know what the good habits are. We cannot give this for granted, especially not for less experienced team members.</p>
+<p>It is pointless to try to adopt habits if we do not even know what the habits are.</p>
+<p>Here is our first action for you, depending on your role</p>
+<ul>
+<li><strong>Developer.</strong> Do your homework. Learn from the best coder out there: colleagues, but also reputable open source repositories. Read from the best authors -just to cite one name: Uncle Bob Martin and his book series on “Clean Code”-.</li>
+<li><strong>Manager.</strong> Create an environment to reward, nurture, and share the knowledge of best practices. We will see later how the environment is a critical factor in determining successful habits’ formation.</li>
+</ul>
+</section>
+<section id="first-rule-make-it-obvious" class="level3">
+<h3 class="anchored" data-anchor-id="first-rule-make-it-obvious">First rule: Make it obvious</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/first.png" class="img-fluid figure-img"></p>
+<figcaption>If you read in bed, keep the books you want to read there. It will be obvious what you have to do.</figcaption>
+</figure>
+</div>
+<p>This is the “cue”. The classic example is that, if you want to read more, you should put your book on the pillow -or wherever you are more likely to see it-.</p>
+<p>How can we apply the first rule to software engineering best practices? I can think of a few options.</p>
+<ul>
+<li>Save on the desktop shortcuts to key tools you should be using (version control, IDE, testing frameworks, etc.).</li>
+<li>Keep a copy of something like “<em>Clean code</em>” right next to your workstation.</li>
+<li>Make a meme with a serious looking Uncle Bob looking at you and saying “How would I do it?”. Use it as a screensaver.</li>
+<li>Use some sort of reminder app on your phone and/or workstation to send you push notifications like “I will write unit tests”, or “I will document that code”.</li>
+</ul>
+<p>There is no limit to how to “make it obvious”. Think of your particular situation and find a way to remind yourself what you want to start doing.</p>
+</section>
+<section id="second-rule-make-it-attractive" class="level3">
+<h3 class="anchored" data-anchor-id="second-rule-make-it-attractive">Second rule: make it attractive</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/second.png" class="img-fluid figure-img"></p>
+<figcaption>Use a little incentive to make attractive what might not be attractive. Writing functions’ documentation is not very exciting, but maybe having a sip of that coffee when you are done is.</figcaption>
+</figure>
+</div>
+<p>This is known as establishing “cravings”. This is what takes you from seeing the cue to actually wanting to do the habit.</p>
+<p>What we aim to do is to make sure we associate the habit with something rewarding. Do you want to form the habit of meditation? Try to do it right before you have a cup of your favourite roast in the morning. Create an association between “meditation” and “coffee craving”.</p>
+<p>What does this mean for developers? It is easier to build habits for something we love to do, rather than for something we have to do. This means, for example, that it might be easier to build a new habit while working on your own personal projects than it is a work.</p>
+<p>Try to start to form new good habits with you personal projects. Associate the craving of the fun project with the formation of the habits.</p>
+</section>
+<section id="third-rule-make-it-easy" class="level3">
+<h3 class="anchored" data-anchor-id="third-rule-make-it-easy">Third rule: make it&nbsp;easy</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/third.png" class="img-fluid figure-img"></p>
+<figcaption>Want to go to the gym in the morning? Make sure the bag is packed the night before (make it easy), and leave it by the door (make it obvious).</figcaption>
+</figure>
+</div>
+<p>Also known as “response”. This is quite self-explanatory, and it goes hand in hand with the cues. If we want to run in the morning, putting our gear right next to the bed is a visual cue, but it will also “make it easier” since the stuff we need is already prepared. No need to go find that t-shirt at the bottom of the drawer while our parter is still asleep.</p>
+<p>Some practical examples include:</p>
+<ul>
+<li>Make it easy to log in. For example, use SSH over HTTP(S) to authenticate to the version control system. You will remove the extra authentication step.</li>
+<li>Create bookmarks to all the services and references you will need.</li>
+<li>Create templates. For instance, in RStudio you can <a href="../../posts/2022-12-24_make_your_r_project_template/index.html">create a project template</a> that already contains a good infrastructure using version control, <code>renv</code>, <code>config</code>, <code>testthat</code>, etc.</li>
+</ul>
+<p>If you are a manager, there is a lot you can do to “make it easy”. Listen to your developers. Search for bottle-necks and common issues, stay informed on industry standards. Work with other managers to “make it easy” to adopt those standards.</p>
+</section>
+<section id="fourth-rule-make-it-satisfying" class="level3">
+<h3 class="anchored" data-anchor-id="fourth-rule-make-it-satisfying">Fourth rule: make it satisfying</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/fourth.png" class="img-fluid figure-img"></p>
+<figcaption>Nothing better than a little “Oh yes! That’s great!” moment happening right after you perform a task to make sure you want to do it again.</figcaption>
+</figure>
+</div>
+<p>This is also called the “reward”. As James put it:</p>
+<blockquote class="blockquote">
+<p>What is immediately rewarded is repeated. What is immediately punished is avoided.</p>
+</blockquote>
+<p>If we make a habit obvious, attractive and easy, we increase the odds we do it. Once. But if we actually want to make it a habit, we need to do it again and again as many times as we can. This is what the reward is about.</p>
+<p>In the work context we can assume that rewards are things like a raise or a promotion. Those are indeed important rewards, but not as important as you think. There are three main issues with using raises and promotions as rewards:</p>
+<ul>
+<li>In Maslow’s theory of motivation they can be found in the third level: belonging and recognition. They are not the main motivational factors (but they are still very important, especially if you want to retain your staff).</li>
+<li>They are outside our control. If our organization is not ready to reward good practices, we will not get those perks.</li>
+<li>They are not immediate rewards. We might work hard for a year to establish a new good habit, and only then maybe we get a raise. The feedback loop is too loose.</li>
+</ul>
+<p>For a habit to stick, we need to make it satisfying to our ego, moving to the fourth and fifth level of <a href="https://en.wikipedia.org/wiki/Maslow%27s_hierarchy_of_needs">Maslow’s pyramid</a>. We need to find a way to get some gratification immediately after we perform the desired habit.</p>
+<p>A common strategy adopted by virtually all health-promoting platforms is enabling tracking. When you perform the habit (go for a run, eat a god food, etc.) you get a star, a green tick on the calendar, you “close a circle”, or whatever it is. The mechanism exploited here is our desire to not break the winning streak.</p>
+<p>We are technical people, so we are normally inclined to like numbers. Why don’t we create our own streaks and trends by tracking things like:</p>
+<ul>
+<li>How much faster am I getting in setting up a new project?</li>
+<li>How much lower is the failure rate of my software?</li>
+<li>How much quicker is my “time to recovery” after a failure?</li>
+</ul>
+<p>You can also use other kinds of rewards, similar to the “cravings” we saw earlier. Initialized a virtual environment? Get a candy.</p>
+<p>If we are managers, we can still make rewards possible. Don’t wait until the end of the year performance review to praise your team. Do it whenever you can. Make sure you share the spotlight.</p>
+</section>
+<section id="some-general-rules" class="level3">
+<h3 class="anchored" data-anchor-id="some-general-rules">Some general rules</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/general.png" class="img-fluid figure-img"></p>
+<figcaption>We saw how we can apply the four cardinal principles of Atomic Habits to our work. Now, let’s consider a few more extra tips and tricks.</figcaption>
+</figure>
+</div>
+<section id="habit-stacking" class="level4">
+<h4 class="anchored" data-anchor-id="habit-stacking">Habit stacking</h4>
+<p>Creating new habits out of thin air is hard. It is much easier if we adopt a strategy known as <em>habit stacking</em>.</p>
+<ul>
+<li>Think of a habit you already have. For instance, “I clone a repository”</li>
+<li>Think of a new habit you want to form and that you could attach to it. As an example, you want to start to use an environment management system such as <code>renv</code> or <code>virtualenv</code>. Now we can start to stack those habits together: “After I clone the repo, I initialize the environment manager”. Note that RStudio also helps you by “making it easy” here: when you create a new project, you can initialize with <code>{renv}</code> by simply clicking on a checkbox.</li>
+</ul>
+<p>Other examples can be:</p>
+<ul>
+<li>After I define a function, I create its documentation (before the implementation phase).</li>
+<li>After I create a repo, I write the skeleton of a README file.</li>
+<li>After I create the test dataset, I create its documentation.</li>
+<li>If you want to get into test driven development: After I decide what my function should do, I write tests for it (before I write the function).</li>
+</ul>
+</section>
+<section id="simply-resisting-temptation-is-a-bad-strategy" class="level4">
+<h4 class="anchored" data-anchor-id="simply-resisting-temptation-is-a-bad-strategy">Simply resisting temptation is a bad strategy</h4>
+<p>Writing code without good practices, especially at the beginning of your career, will feel easy and fast. This is natural: our habits are not consolidated into automated actions yet.</p>
+<p><strong>As a developer:</strong></p>
+<p>Simply thinking “I will resist the temptation of cutting corners” will not work. You will need to make the new way of working obvious, attractive, easy, and rewarding. You will need to be proactive.</p>
+<p><strong>As a manager:</strong></p>
+<ul>
+<li>Make sure that your developers have what they need to work properly and that they are rewarded for working well.</li>
+<li>At some point, you will have to play the bad cop. For example, If you want to adopt DevOps (or MLOps, or any X-Ops for what matters) you cannot simply rely on developers to remember to do things right. You will impose quality checks that will reject bad work: pull requests, failing tests, insufficient test coverage, or any quality requirements you might have.</li>
+</ul>
+<blockquote class="blockquote">
+<p>Sometimes success is less about making good habits easy and more about making bad habits hard.</p>
+</blockquote>
+</section>
+<section id="fostering-the-right-culture" class="level4">
+<h4 class="anchored" data-anchor-id="fostering-the-right-culture">Fostering the right culture</h4>
+<p>As James points out, we imitate the habits of three social groups: the close, the many, the powerful.</p>
+<p><strong>As a developer</strong></p>
+<p>Design your environment: join a culture where your desired behavior is the normal behaviour. Ask questions at interviews to uncover this.</p>
+<p><strong>As a manager</strong></p>
+<ul>
+<li><strong>The Close.</strong> Make sure that all the peers in the team are equally driven towards best practices. This way, they can motivate and inspire each other. This idea is often referred to as having an <em>accountability partner</em>.</li>
+<li><strong>The Many.</strong> Everyone in the organization should measure himself or herself against high standards. No-one is free to break the “good work” agreement.</li>
+<li><strong>The Powerful.</strong> Individuals in positions of power (team lead, tech lead, team manager, project manager, all the way to the CEO) must lead by example. They do not demand high quality while being sloppy.</li>
+</ul>
+</section>
+<section id="two-minute-rule" class="level4">
+<h4 class="anchored" data-anchor-id="two-minute-rule">Two-Minute Rule</h4>
+<blockquote class="blockquote">
+<p>When you start a new habit, it should take less than two minutes to do.</p>
+</blockquote>
+<p>Do not try to do everything at once. Think of this project of forming good developer’s habits as swimming training. Break down and practice small parts of your stroke independently. Do not worry about the breathing, the catch, the pull, and the recovery all at once.</p>
+</section>
+<section id="note" class="level4">
+<h4 class="anchored" data-anchor-id="note">Note:</h4>
+<p>This post is not affiliated in any way to the work done by James Clear. It is an application of the method to the world of software development. There is a lot more in James’ book, and I recommend you pick up a copy and subscribe to his newsletter to get access to even more material.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/theasjblog\.github\.io\/analytics\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="theasjblog/analyticsComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
