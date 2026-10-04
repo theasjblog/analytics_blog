@@ -1,0 +1,793 @@
+---
+title: "From Prompt Pipeline to Coaching Application"
+description: "LLM: from idea to pre-production."
+date: "2026-06-01"
+categories: [software-design, productivity]
+image: img/cover.png
+---
+
+## Why a second article
+
+In a [previous article](../2026-05-10_coach_ai/index.qmd) I described the first 
+stable version of the coaching
+workflow: normalized planning context, persistent prompts, structured output,
+validation, and targeted repair.
+
+That design worked, but it still behaved more like an engineering pipeline
+than like an application.
+
+The system could generate useful weekly reviews and plans, but the workflow
+was still heavily shaped by the implementation itself. The user experience was
+non-existent (termial only), the tool was not portable (I could only run it 
+from my computer), state was spread across a few operational layers 
+(Notion, intervals.icu, local files) with no clear single source of truth.
+
+So I made some changes.
+
+The main shift is not that the model became smarter. Fine tuning would still be
+a good thing to do, but there is a lot more to gain by working on
+the surrounding software and make it more explicit.
+
+The workflow now has:
+
+- a dedicated UI rather than a mostly script-like interaction model
+- explicit form validation and state checks before generation is triggered
+- durable storage in Google Cloud Storage as the system of record
+- Cloud Run deployment as a stable runtime surface
+- retrieval-backed prompting through an OpenAI vector store (RAG)
+- usage logging for observability
+- race-aware weekly review against athlete-defined race objectives
+- a structured workout-template library that the planner now selects and
+  adapts deterministically before any targeted repair fallback is considered
+
+This article focuses on these changes. 
+
+## What changed architecturally
+
+### The system boundary became clearer
+
+The earlier version used Notion as both an operational data layer and a major
+interaction surface: I was saving data directly in there, and displaying outputs.
+
+That was useful for getting the first version working quickly, but it bundled
+too many responsibilities into one tool. It meant the system was partly an
+application and partly a collection of synchronized tables. The result was an 
+instable, hard to replicate, and difficult to version system. Having such a heavy 
+dependency on a tool like Notion would also make it difficult to market the
+solution, if that was in scope.
+
+The current design is more opinionated:
+
+- `GCS` is now the system of record
+- `Notion` is not really used anymore. It is still linked to the workflow as a 
+  secondary target to save the planned week, but that is only for my own conveniance: 
+  Notion synchs with Google Calendar so I can quickly see which sessions I have
+  planned for the day
+- `intervals.icu` provides executed workouts, wellness, and thresholds
+- `OpenAI` handles generation
+- the Dash app is now the primary user interface
+
+That is a much better fit for a controlled software workflow.
+
+The high-level architecture now looks like this:
+
+```{mermaid}
+flowchart LR
+    CR[Cloud Run<br/>Dash app]
+    MU[Monitoring app]
+    GCS[(Google Cloud Storage)]
+    BQ[(BigQuery billing export)]
+    OA[OpenAI API<br/>generation + vector store retrieval]
+    ICU[Intervals.icu API]
+    NOTION[Notion]
+    SM[Secret Manager]
+    
+    SM --> CR
+    SM --> MU
+    CR <--> OA
+    CR <--> ICU
+    CR <--> GCS
+    CR --> NOTION
+    GCS --> MU
+    BQ --> MU
+
+    style CR fill:#dff3ea,stroke:#1f6f4a,stroke-width:3px,color:#123524
+    style MU fill:#dff3ea,stroke:#1f6f4a,stroke-width:3px,color:#123524
+```
+
+The important architectural choice is that the Dash application is now the
+orchestrator and GCS is the system of record.
+
+The monitoring app is a read-only surface. It reads telemetry logs from GCS and
+infrastructure cost data from the Cloud Billing export in BigQuery. It does not
+create a second operational data store of its own.
+
+### The app orchestrates the workflow
+
+The UI does not simply replace command-line steps with buttons. It introduces a
+different control model.
+
+The app now exposes distinct components for:
+
+- season planning
+- zones review
+- weekly plan generation and editing
+- weekly review synchronization and coach review generation
+
+## Why the UI matters
+
+### Validation moved earlier in the workflow
+
+One of the biggest improvements is that more checks now happen before an LLM
+request is even sent.
+
+For example, the season-planning interface validates required fields, date
+format, and race placement before generation is allowed. That
+is a simple point, but an important one. If the input form already knows the
+season start is after the season end, there is no reason to spend tokens
+discovering that downstream.
+
+The weekly workflow benefits from the same idea. Before a plan is generated, 
+the app already knows:
+
+- which season is active
+- which week is being planned
+- what session-availability slots exist for that week
+- what saved state already exists in storage
+- whether race-day rows need to be injected from the season calendar
+
+That allows the generation step to start from a better-defined state.
+
+`TODO: insert screenshot of the week plan editor with availability rows and the generated week plan table`
+
+Under the hood, that flow now looks like this:
+
+```{mermaid}
+flowchart TD
+    A[User selects week + availability] --> B[Availability validation]
+    B --> C[Build planning context from season + zones + prior reviews + races]
+    C --> D[Inject race-week context]
+    D --> E[Surface structured template candidates]
+    E --> F[Retrieve coaching evidence from vector store]
+    F --> G[OpenAI generates session intents]
+    G --> H[Deterministic template selection + adaptation]
+    H --> I[Deterministic normalization + validation + load scoring + race-day row injection]
+    I --> J{Valid?}
+    J -- No --> K[Deterministic targeted repair]
+    K --> L{Still invalid?}
+    L -- Yes --> M[Targeted LLM repair for rejected sessions or dates]
+    L -- No --> N[User edits plan]
+    M --> I
+    J -- Yes --> N[User edits plan]
+    N --> O[Save week plan to GCS]
+    O --> P[Sync saved week plan to Notion]
+```
+
+Another rule now lives in this deterministic layer: session load is no longer
+trusted as an LLM-produced scalar. The app recalculates the authoritative
+Swim, Bike, and Run load from `Prescription Structure` using a Joe Friel /
+TrainingPeaks style `duration × intensity² × 100` rule. That makes load a
+software policy rather than a probabilistic guess.
+
+The availability model also became more granular. The earlier UI used one row
+per day, which was too coarse for common cases like "30 minutes to run before
+work, but 60 minutes available to swim later." The current app instead stores
+availability as one row per session slot. That allows the planner and
+validator to respect different duration caps for different sports on the same
+date, and it allows a single Bike+Run slot to be treated as a possible brick
+window rather than as two unrelated single-sport permissions. It also means
+free-text slot notes can now be upgraded into real constraints when the note is
+clear enough. For example, a note like "Bike should be at least 1h45min" is no
+longer just prompt flavor; it becomes a validator-enforced minimum for the bike
+work that uses that slot.
+
+The weekly planner itself has also become stricter. The LLM is no longer asked
+to draft the full week first. It now proposes `session intents` such as sport,
+goal, brick status, purpose, target duration, and for Swim sessions a separate
+technique-emphasis signal. Code then selects from a
+structured Swim/Bike/Run template catalog, adapts the chosen template
+deterministically, resolves numeric target ranges from saved athlete anchors,
+recalculates duration and load, and validates the result. The same
+deterministic layer also fixes a subset of obvious plan defects in code, such
+as mismatched planned duration, overlong time-based strength or brick
+segments, and small brick-over-day-cap overruns, before escalating anything
+back to the LLM. The next repair step is still deterministic: rejected
+sessions are patched in place where possible, or re-materialized from another
+structured template if the original choice was poor. LLM repair is now the
+last stage, and it only sees the rejected sessions or dates rather than the
+whole week.
+
+That stricter deterministic layer now also protects against two easy failure
+modes that showed up in earlier iterations. First, the selector no longer
+accepts semantically incompatible templates just because the duration is close,
+so a non-brick threshold bike intent should not quietly turn into a brick-prep
+ride. Second, pool swims must retain real structure. A single continuous
+`Main 50:00` style swim block is treated as invalid; the planner expects
+warmup, main work, cooldown, and where appropriate some explicit drill content.
+And at the wording layer, unresolved alternatives should not survive into the
+final rows. If the planner chooses a long run, the saved row should not still
+say "long run or test unless ..." after the other option has already been
+discarded.
+
+This is a more opinionated architecture than the earlier library-assisted
+prompting approach. The model still matters, but it now operates one level
+higher in the stack. Its main planning job is to choose and justify the right
+session intent; the software is increasingly responsible for the workout
+structure itself.
+
+The structured catalog is also broader now than it was in the first template
+pass. In addition to the hand-authored core families, the current `Your Best
+Triathlon` workout subset has been converted into machine-adaptable structured
+templates, with brick workouts split into executable Bike and Run segments so
+they can move through the same deterministic selector and validator.
+
+That separation matters for swim design in particular. Technique focus is no
+longer treated as a synonym for "make this a drill-only swim." Most swims can
+now stay endurance or threshold sessions while still carrying a small explicit
+drill component in the warmup or early set.
+
+### Editing became explicit rather than accidental
+
+In the earlier workflow, I was editing several tables and scripts directly to
+provide inputs.
+
+The UI makes these intervention points explicit:
+
+- edit season inputs, then generate a preview
+- inspect the preview, then confirm and persist it
+- generate a weekly plan, review the rows, then save
+- sync the review week from Intervals.icu, add feedback, and then ask for a
+  weekly coach review
+- open a single completed workout and request a session-specific review only
+  when needed
+
+This is a better human-in-the-loop design.
+
+The human is not asked to supervise the model at every token. The human is
+asked to supervise state transitions where judgment is actually useful:
+confirming a season, editing a plan, adding subjective feedback, or deciding
+whether an individual workout deserves deeper inspection.
+
+That pattern starts with season creation itself.
+
+`TODO: insert screenshot of the season planner form including the race table and preview/confirm flow`
+
+The season workflow is deliberately staged:
+
+```{mermaid}
+flowchart TD
+    A[User enters season inputs] --> B[UI validation]
+    B --> C[Build deterministic season context<br/>recent fitness + threshold anchors + race specs]
+    C --> D[Retrieve coaching evidence from vector store]
+    D --> E[OpenAI preflight<br/>Do I have enough context?]
+    E --> F{Questions needed?}
+    F -- Yes --> G[Show up to 5 targeted questions in UI]
+    G --> H[User answers once]
+    H --> I[OpenAI final season planning pass]
+    F -- No --> I
+    I --> J[Render final preview in app]
+    J --> K[Coach edits race strategy, block targets, CTL/Form seeds deterministically]
+    K --> L{User confirms?}
+    L -- No --> M[Reset or regenerate]
+    L -- Yes --> N[Persist artifacts + tables to GCS]
+    N --> O[Active season available to rest of app]
+```
+
+Two design details matter here.
+
+First, the season form no longer asks for a manual end date. The app derives
+season end as the Sunday of the week containing the last planned race, and it
+blocks plans longer than 365 days. That turns a fuzzy user input into a
+deterministic software rule.
+
+Second, the season workflow is now explicitly question-first rather than
+draft-first. The preflight pass receives everything the software can assemble
+automatically: current CTL and ATL when available, recent 4-6 week training
+summaries from stored data, threshold anchors from saved zones, and standard
+race specs that are normalized in code instead of guessed by the model. If the
+coach still wants clarification, those questions are shown directly to the
+user before any season draft is produced. The answers are then passed into one
+final planning pass, after which no additional clarification loop is allowed.
+
+The preview is also more useful than it was when I first wrote this article.
+Once the season is generated, some edits are now deterministic rather than
+regenerative. The coach can adjust taper and recovery days in the race table,
+edit block-level targets and `duration_weeks`, seed starting CTL and Form, and
+see the chart update immediately. The software recalculates the timeline,
+projected weekly load, CTL, and Form without calling the LLM again, and a
+reset action restores the untouched generated draft if the manual edits go in a
+bad direction.
+
+### Review and feedback became first-class workflow objects
+
+The current system now treats weekly review and single-workout feedback as
+separate product surfaces, not as incidental text outputs.
+
+That distinction matters.
+
+A weekly review is a synthesis artifact across a whole week of planned and
+executed work. A single-workout review is different. It is much narrower and
+uses execution details plus athlete feedback to interpret one completed swim,
+bike, or run session.
+
+It also improves cost and control. The app generates single-session reviews on
+demand, rather than precomputing commentary for every row whether it is needed
+or not. That keeps the expensive reasoning surface narrow and tied to a user
+action.
+
+Race review has also become more explicit. When the selected week contains a
+race, weekly review now switches into a race-aware mode. Instead of treating
+the week as a failed taper or an underloaded training microcycle, the system
+uses the athlete's saved race objectives and evaluates the event against those
+objectives. The review still comments on the individual swim, bike, and run
+segments, but it also produces a whole-event `overall_race_review`, which is a
+better fit for how athletes and coaches actually talk about races.
+
+This is easiest to see in the review surfaces themselves.
+
+`TODO: insert screenshot of the week review table with row-level feedback and clickable single-session review`
+
+The weekly review flow:
+
+```{mermaid}
+flowchart TD
+    A[Load saved weekly plan] --> B[Sync completed activities from Intervals.icu]
+    B --> C[Attach wellness rows from Intervals.icu]
+    C --> D[User edits row-level feedback]
+    D --> E[Deterministic weekly compliance summaries]
+    E --> F[Retrieve coaching evidence from vector store]
+    F --> G[OpenAI generates weekly coach review]
+    G --> H[Save weekly review state + coach review to GCS]
+```
+
+And the narrower single-session review flow:
+
+```{mermaid}
+flowchart TD
+    A[User opens one completed session] --> B[Fetch activity detail from Intervals.icu]
+    B --> C[Deterministic analysis<br/>session identity, structure match, rep match, intensity execution, HR, compliance bands]
+    C --> D[Retrieve coaching evidence]
+    D --> E[OpenAI generates session feedback]
+    E --> F[Store review payload in weekly review state on GCS]
+```
+
+That deterministic layer is much richer now than it was in the early review
+versions. The app does not just compute a generic compliance percentage and ask
+the model to improvise a judgment. It first builds a structured session-match
+object that separates:
+
+- whether the right sport and rough session volume happened
+- whether the macro structure matched the prescription
+- whether the repeated work matched at rep level
+- whether the key work intervals were on target, harder, or easier
+
+That distinction turned out to matter a lot. A session can match the intended
+structure while still running slightly harder than prescribed, and those are
+not the same coaching message. The UI now exposes that deterministic analysis
+back to the user through summary cards, a block-match table, and an intensity
+evidence table instead of hiding it inside the prompt payload.
+
+### Model selection became task-specific
+
+Another important refinement is that the system no longer assumes one model
+should handle every task.
+
+That was acceptable early on, but it is not a very good operational policy.
+Season planning has the broadest context window, the highest consequence of bad
+reasoning, and now includes a two-pass clarification loop. Single-session
+feedback is much narrower. Repair passes are narrower again. Treating all of
+those as the same LLM problem is convenient in code, but not very disciplined.
+
+The current app routes models by request type:
+
+- season planning uses the strongest model
+- weekly planning uses a strong but cheaper model
+- weekly-plan repair uses a smaller model
+- weekly review uses a smaller model
+- single-session feedback uses a smaller model
+
+This is configured explicitly rather than buried in prompt code, and the
+telemetry records the resolved model plus aggregate `models_used` for each run.
+That matters because one logical workflow can now be mixed-model: a weekly plan
+run may start with one model and use a cheaper one for repair. The monitoring
+surface therefore has to cost runs from run-level usage logs, not by assuming
+one model everywhere.
+
+### Compliance interpretation moved out of the model
+
+Early versions of the review workflow passed raw compliance percentages into
+the model and let it decide what they meant. That turned out to be too loose.
+A one-percent miss in duration or load could trigger negative commentary even
+when the deviation was operationally meaningless. In simple terms, I was getting
+feedback like this:
+
+>> You cut today run short. This could be because of accumulated fatigue, even you
+>> marked it as "felt easy and realexed pace all the way through". We will need to
+>> adjust the training load next week.
+
+How much did I cut the session short? I made a 90min run an 88min one. Unforgivable...
+
+Whether a deviation is trivial, minor, or significant is not the kind of thing
+that should be rediscovered probabilistically on every run. It is a policy
+decision, and policy decisions are better encoded deterministically.
+
+The current system now computes explicit compliance bands before the coach sees
+the data, and it interprets them together with the structured session-match
+object rather than as isolated percentages.
+
+For single-session review, the app computes:
+
+- signed duration and load deltas
+- explicit over-versus-under compliance (i.e. cutting 10min, or adding 10min?)
+- tolerance-aware labels such as `ignore`, `minor`, `moderate`, and `major`
+- absolute guardrails so a tiny miss in minutes or load is not treated as
+  meaningful just because the session was short
+
+The current thresholds are intentionally simple:
+
+- less than 5% can be ignored
+- 5% to 10% is minor
+- 10% to 30% is moderate
+- 30% or more is significant
+
+This means the model no longer has to decide from scratch whether 99% versus
+101% compliance deserves criticism. The software tells it directly that those
+cases are inside tolerance unless something else in the workout strongly
+contradicts that interpretation. It also means that missing the power target
+on a key threshold rep is treated very differently from riding a cooldown a bit
+too hard. Warmup, cooldown, and recovery still matter, but they no longer
+automatically flip the whole session verdict if the key work was executed
+correctly.
+
+At the weekly review level, the same idea is aggregated rather than repeated
+row by row. The coach now sees pattern summaries such as:
+
+- share of sessions within tolerance
+- average signed load and duration delta
+- counts of over- and under-execution
+- count of major deviations
+
+That is much closer to how a human coach would think. A weekly review should
+focus on patterns, not on nitpicking every minor discrepancy. If most sessions
+were within tolerance and only one session drifted by a few percent, that is
+not an insight. It is noise.
+
+This is a good example of the broader design direction. The model still writes
+the coaching interpretation, but the application is increasingly responsible
+for deciding what deserves interpretation in the first place.
+
+## How data is organized in GCS
+
+One of the more consequential changes was not the UI. It was deciding to make
+GCS the durable backing store and to be explicit about how data is laid out
+there.
+
+At a high level, the bucket stores a mix of:
+
+- normalized parquet tables for analytical and cross-surface reads
+- JSON artifacts for workflow state and model inputs/outputs
+- JSONL logs for observability
+
+The layout is intentionally simple and path-based.
+
+Example structure:
+
+```text
+training_automation/
+  clubs/{club_id}/
+    metadata/
+      tenancy/*.parquet
+    coaches/{coach_id}/
+      metadata/coach.json
+      athletes/{athlete_id}/
+        metadata/
+          active_season.json
+          catalog.json
+          week_plan/{season_id}/{week_start}.json
+          week_review/{season_id}/{week_start}.json
+          weekly_review_output/{season_id}/{week_start}.json
+          weekly_wellness/{season_id}/{week_start}.json
+          zones_state.json
+        tables/
+          season_summary/season_id=.../part-000.parquet
+          races/season_id=.../part-000.parquet
+          season_blocks/season_id=.../part-000.parquet
+          block_weekly_targets/season_id=.../part-000.parquet
+          weekly_plan/season_id=.../part-000.parquet
+          weekly_review/season_id=.../part-000.parquet
+          athlete_profile/season_id=.../part-000.parquet
+          athlete_settings/season_id=.../part-000.parquet
+        artifacts/
+          season_plans/{season_id}/latest/*.json
+          season_plans/{season_id}/versions/{version_id}/*.json
+  logs/
+    llm_usage_events/YYYY/MM/DD/*.jsonl
+    openai_usage_log/YYYY/MM/DD/*.jsonl
+```
+
+This split reflects two different access patterns.
+
+The parquet tables are useful when the application wants normalized relational
+reads. For example:
+
+- load all races for one season
+- query projected fitness rows
+- inspect weekly review history
+- reconstruct planner defaults from persisted season tables
+
+The JSON artifacts are useful when the workflow needs to preserve a richer
+object exactly as it existed at one step in the process. For example:
+
+- a generated week plan payload before it is flattened into a table
+- the saved state of the editable week review surface
+- the full season-planning bundle and its versioned artifacts
+- generated coach-review outputs
+
+That combination turned out to be more practical than trying to force
+everything into either tables only or JSON only.
+
+### Why this structure instead of a traditional relational database?
+
+There are several reasons.
+
+First, the workflow is artifact-heavy.
+
+The application does not only manage transactional entities like sessions or
+races. It also manages generated bundles, previews, editable workflow state,
+versioned plan artifacts, and telemetry payloads. Those objects are often more
+naturally stored as files than as rows spread across many normalized tables.
+
+Second, read patterns are narrow and seasonal.
+
+This is not a high-concurrency product with many simultaneous users mutating
+shared records. It is a constrained single-athlete workflow with a small set of
+known reads:
+
+- load one active season
+- load one saved week
+- load one weekly review state
+- load one set of artifacts for inspection
+
+For that pattern, object storage plus cached parquet reads is often simpler
+than running and maintaining a database service.
+
+Third, versioning and auditability are easier.
+
+A versioned season plan bundle in object storage is straightforward to persist
+and inspect. Keeping both a `latest/` pointer and explicit
+`versions/{version_id}/` directories makes it easy to answer questions like:
+
+- what exactly did the model produce?
+- what inputs were used?
+- what was later confirmed?
+
+That is possible in a relational database too, but it usually requires more
+schema design up front and more care around immutable historical records.
+
+Fourth, the app already lives in a file-oriented world.
+
+Prompt assets, JSON schemas, deployment files, and logs are all file-like
+artifacts. Storing workflow state in a compatible medium keeps the system
+conceptually simpler.
+
+### Why parquet and JSON specifically?
+
+Parquet is used for normalized tables because:
+
+- it is compact
+- it reads efficiently through DuckDB
+- it preserves typed columns better than ad hoc CSV
+- it is convenient for analytical inspection later
+
+JSON is used for workflow state and generated artifacts because:
+
+- it preserves the original nested structure
+- it is easy to diff and inspect manually
+- it maps naturally to LLM inputs and outputs
+- it avoids impedance mismatch for state that is not naturally tabular
+
+In other words, the storage layer is not trying to pretend every object has
+the same shape. Some parts of the workflow are relational, and some are
+artifact-shaped. The GCS layout accepts that directly.
+
+## Storage and deployment changed the reliability profile
+
+### Durable storage reduced ambiguity
+
+The app now persists:
+
+- season plans and related artifacts
+- weekly plan payloads
+- weekly review state
+- generated weekly coach reviews
+- wellness snapshots
+- zones state and active-season metadata
+
+This gives the workflow a real memory that is separate from the browser
+session and separate from any one downstream table.
+
+That is important for two reasons.
+
+First, it makes recovery much cleaner. Reopening the app can reuse saved
+artifacts rather than reconstructing everything from scratch.
+
+Second, it improves auditability. When something looks wrong, there is an
+actual stored payload to inspect rather than only the latest UI state.
+
+### Cloud Run made the runtime model simpler
+
+Deploying to Google Cloud Run also tightened the system boundary.
+
+The app is now a hosted runtime with:
+
+- server-side secrets from Secret Manager
+- a stable deployment script
+- public access gated by a lightweight app password
+- cloud-hosted persistence in the same operational environment
+
+This does not magically make the system production-grade in every respect. The
+current password gate is still an MVP access control mechanism, not strong
+authentication.
+
+But it does solve a real engineering problem: the system is now usable as a
+single deployed application from anywhere in the world, rather than as a local
+development workflow that happens to call APIs.
+
+## Retrieval and observability improved the LLM layer
+
+### Retrieval is now an enforced dependency
+
+Another meaningful change is the use of live OpenAI vector-store retrieval as
+the evidence source for generation surfaces.
+
+This addresses a
+specific problem: the stable instruction file is necessary, but it is not a
+complete coaching knowledge base.
+
+The system now expects generation to be grounded in retrieved evidence rather
+than in whatever the base model happens to remember. The important design
+point is that retrieval failure is handled conservatively. If no evidence is
+returned, generation fails closed rather than silently degrading into
+ungrounded output.
+
+A retrieval-backed system that silently proceeds when retrieval breaks is only
+pretending to be retrieval-backed.
+
+The retival store was built by embedding knowledge from books by Joe Friel and 
+Matt Fitzgerald, among others. Note that this is copyrighted material. I am OK using
+it for this PoC, as I purchesed the books myself and it is only for my personal use,
+but if you plan to commercialize solutions like this you need to be careful not to
+infringe any Copyright law.
+
+### Retrieval is now structured, not just present
+
+The first retrieval-backed version still had a weakness: although the model was
+given external evidence, the evidence store itself was too coarse. Most of the
+source material was uploaded at the whole-book level. That meant the retriever
+could find the right author or the right book but still return the wrong
+abstraction level. A season-planning query could easily surface swim stroke
+mechanics, and a workout-feedback query could pull annual-periodization prose.
+
+The current version fixes that by changing the corpus itself, not only the
+prompt.
+
+The books are now split into section-level files before upload, and each file
+receives controlled metadata such as:
+
+- planning level: macrocycle, mesocycle, microcycle, workout, technique, reference
+- topic: season planning, weekly planning, taper, recovery, swim technique, session library, and so on
+- sport: triathlon, duathlon, swim, bike, run, strength, or multi
+- phase and distance focus where those distinctions are meaningful
+
+That makes retrieval more like a real information system and less like generic
+semantic similarity over a pile of long documents.
+
+At runtime, the app now uses task-specific metadata filters:
+
+- season planning biases toward macrocycle and mesocycle planning material
+- weekly planning biases toward mesocycle, microcycle, and workout guidance
+- single-session review biases toward workout and technique material
+
+There is also a pragmatic safeguard here. Filtered retrieval is useful only if
+the corpus is well tagged. So the app logs filtered retrieval, but if a
+metadata-filtered search returns no hits it automatically retries the same query
+without the task-level filters instead of failing for the wrong reason. In
+other words, retrieval is stricter than before, but not brittle.
+
+This is a small architectural point with a large practical effect. The quality
+gain did not come from "better prompts" alone. It came from representing the
+knowledge base in a way that matches the structure of the coaching problem.
+
+### Cost monitoring becomes operational
+
+The original workflow already logged token usage, but the current version has a
+clearer observability split.
+
+The most important addition is persistent telemetry written to GCS.
+
+Detailed LLM usage and event logs now persist under date-partitioned paths, so
+the system has a longer-lived usage history outside the current session. That
+matters because it allows me to monitor costs and identify areas where the code
+can be tightened rather than only tuning prompts.
+
+This also matters for deterministic rules, not only for tokens. For example,
+weekly planning now emits a dedicated `weekly_plan_load_rule` monitoring event
+when the calculated load materially disagrees with a model-produced estimate,
+or when a structured prescription is still too vague to score reliably. The
+run-level logs also now record a `log_schema_version`, the plan generation
+mode, structured-template candidate counts, how many intents were materialized
+through deterministic templates versus generic fallback rows, grouped
+materialization failure reasons, and a backward-compatible legacy-fallback
+flag. That makes it possible to distinguish “the model was expensive”
+from “the deterministic planner had to fall back because template coverage or
+validation was insufficient.” The same run-level records now also distinguish
+between three repair layers: deterministic patching, deterministic
+re-materialization, and targeted LLM repair.
+
+The same logic now applies to season planning. Because the season workflow is
+two-pass, telemetry can distinguish the initial draft from the clarification
+pass. That means I can inspect not only total season-planning cost, but whether
+the system is getting cleaner first-pass plans over time or simply shifting
+cost into the follow-up pass.
+
+Now, questions like these become easier to answer:
+
+- Which workflow surface is the main token consumer?
+- How often does weekly planning require repair?
+- Are single-session reviews cheap enough to be offered more broadly?
+- Is latency drifting after prompt or retrieval changes?
+- Are failures concentrated in retrieval, validation, storage writes, or
+  deterministic template materialization misses?
+
+`TODO: insert screenshot of the monitoring dashboard showing token usage, repair rate, and infrastructure cost`
+
+## The workflow is now stricter in the right places
+
+The most useful improvement is not any one feature. It is the cumulative
+effect of several stricter boundaries.
+
+- The form layer rejects obviously invalid inputs earlier.
+- The UI separates generation, confirmation, editing, and saving into distinct
+  steps.
+- Storage provides durable state instead of relying on transient app memory.
+- Monitoring exposes token and request behavior as an engineering signal.
+- Weekly planning now separates intent generation from deterministic workout
+  materialization, which is a much better boundary than asking the model to
+  invent every interval structure from scratch.
+
+The point is to make the non-deterministic component live inside a workflow
+that is more stateful, inspectable, and recoverable than the first version,
+while leveraging GenAI to flexibly generate plans and provide insights.
+
+## Tradeoffs
+
+The newer design is better, but it is not free.
+
+- the application is more complex than the original script-oriented workflow
+- storage, deployment, and retrieval introduce more moving parts
+- UI code creates another maintenance surface in addition to prompts and
+  orchestration logic
+- cloud persistence and monitoring improve operability, but they also make the
+  system more infrastructure-dependent
+
+Those tradeoffs are acceptable because they buy control in the places where
+the original version was weakest: input handling, state continuity, and
+operational visibility.
+
+## Conclusion
+
+The first version of this coaching system answered a design question: can an
+LLM-assisted training workflow be made repeatable with normalized state,
+validation, and repair?
+
+The current version answers a different question: what changes when that
+workflow becomes an application?
+
+The answer is that the important improvements are mostly outside the model.
+They are input validation, explicit workflow surfaces, persistent storage,
+retrieval discipline, deployable runtime boundaries, and usable observability.
+
+That is the direction I currently find most convincing for applied LLM
+systems. The quality of generation still matters, but once the basic workflow
+works, the bigger engineering gains come from making the system easier to
+control.

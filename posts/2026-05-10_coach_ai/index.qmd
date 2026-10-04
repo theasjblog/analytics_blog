@@ -185,6 +185,27 @@ Each of those failure modes maps to a design response.
 That mapping is important because it shows that the workflow was not designed
 in one pass. It was tightened in response to actual system behavior.
 
+### Two later extensions
+
+Since writing the first version of this system, two practical extensions have
+become important enough that they belong in the architectural picture.
+
+The first is race-aware review. A race week should not be judged mainly
+against target training load. It should be reviewed against the athlete's
+stated race objectives: pacing, execution, fueling, transitions, and other
+pre-race intent. In the current workflow, those objectives live in the season
+race table and are carried into weekly review, which now produces both
+sport-level observations and an event-level `overall_race_review`.
+
+The second is a local workout library layered on top of retrieval. The system
+still uses retrieval-grounded coaching evidence, but weekly planning can now
+also surface reusable swim, bike, run, strength, and brick templates from a
+structured local library. When a template fits the athlete and the block
+objective, the model adapts it. When no template fits, the planner falls back
+to ordinary constrained generation. This preserves flexibility while reducing
+the amount of session design that has to be improvised from scratch every
+week.
+
 ## Practical Implementation
 
 At this point, the article stops being purely architectural. The system is not
